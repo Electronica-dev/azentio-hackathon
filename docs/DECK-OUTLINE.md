@@ -1,7 +1,7 @@
-﻿# Deck outline â€” 9 slides
+# Deck outline — 9 slides
 
 16:9. Azentio palette: navy `#0C1929`, green `#16915C`, mint `#2FD08B`, off-white `#F2F5F8`.
-One idea per slide. â‰¤25 words of body text. One screenshot or diagram. Numbers must match the app at 17:30.
+One idea per slide. ≤25 words of body text. One screenshot or diagram. Numbers must match the app at 17:30.
 
 ---
 
@@ -12,7 +12,7 @@ One idea per slide. â‰¤25 words of body text. One screenshot or diagram. Num
 
 Track the change. Assess policy, process and system impact. Prove it.
 
-`Azentio.ai Build Labs Â· 31 October 2026 Â· Challenge 02`
+`Azentio.ai Build Labs · 31 October 2026 · Challenge 02`
 
 ---
 
@@ -28,7 +28,7 @@ Three numbers, big:
 
 Body: Compliance reads it. Operations interprets it. Technology discovers it late. Audit asks who approved it.
 
-Speaker note: â€œThe expensive part isnâ€™t reading the circular. Itâ€™s proving what it changed, and who owns the change.â€
+Speaker note: “The expensive part isn’t reading the circular. It’s proving what it changed, and who owns the change.”
 
 ---
 
@@ -36,11 +36,11 @@ Speaker note: â€œThe expensive part isnâ€™t reading the circular. Itâ�
 
 **Impact is a graph, not a summary.**
 
-Diagram: `clause â†’ obligation â†’ policy / process / system / control â†’ task â†’ evidence`
+Diagram: `clause → obligation → policy / process / system / control → task → evidence`
 
 Body: A summary tells you what the regulator said. A graph tells you what must move, who owns it, and why.
 
-Speaker note: â€œEvery chatbot can summarise. Almost none can answer: which system, which field, which owner, which clause?â€
+Speaker note: “Every chatbot can summarise. Almost none can answer: which system, which field, which owner, which clause?”
 
 ---
 
@@ -50,13 +50,13 @@ Speaker note: â€œEvery chatbot can summarise. Almost none can answer: which 
 
 Five columns with icons:
 
-1. **Redline** â€” what changed, word by word
-2. **Obligations** â€” what must be done, with the quote
-3. **Impact** â€” which asset, what gap, how severe
-4. **Plan** â€” who does what, by when, in what order
-5. **Evidence** â€” a hash-chained record
+1. **Redline** — what changed, word by word
+2. **Obligations** — what must be done, with the quote
+3. **Impact** — which asset, what gap, how severe
+4. **Plan** — who does what, by when, in what order
+5. **Evidence** — a hash-chained record
 
-Footer: Deterministic Â· sub-30 ms Â· no model call required
+Footer: Deterministic · sub-30 ms · no model call required
 
 ---
 
@@ -64,26 +64,26 @@ Footer: Deterministic Â· sub-30 ms Â· no model call required
 
 Three screenshots, left to right:
 
-1. **Redline** â€” â€œ24 months â†’ 12 monthsâ€
-2. **Impact** â€” â€œCIF hard-codes 25% BO; amendment requires 10%â€
-3. **Plan** â€” â€œ25 tasks Â· 297 effort-days Â· owner + due dateâ€
+1. **Redline** — “24 months → 12 months”
+2. **Impact** — “CIF hard-codes 25% BO; amendment requires 10%”
+3. **Plan** — “25 tasks · 297 effort-days · owner + due date”
 
-Caption: â€œFrom clause to change ticket in three clicks.â€
+Caption: “From clause to change ticket in three clicks.”
 
 ---
 
-## 6. Why itâ€™s trustworthy
+## 6. Why it’s trustworthy
 
 **The agent proposes. The human approves. The chain proves.**
 
 Four quadrants:
 
-- **Evidence-linked** â€” every obligation has a verbatim quote and clause reference
-- **Deterministic** â€” same document in, same assessment out; reproducible in the demo
-- **Human-in-the-loop** â€” approval is an explicit act, never auto-execution
-- **Tamper-evident** â€” SHA-256 chain over every extraction, score and approval
+- **Evidence-linked** — every obligation has a verbatim quote and clause reference
+- **Deterministic** — same document in, same assessment out; reproducible in the demo
+- **Human-in-the-loop** — approval is an explicit act, never auto-execution
+- **Tamper-evident** — SHA-256 chain over every extraction, score and approval
 
-Speaker note: â€œBanks donâ€™t buy magic. They buy defensibility.â€
+Speaker note: “Banks don’t buy magic. They buy defensibility.”
 
 ---
 
@@ -94,14 +94,14 @@ Speaker note: â€œBanks donâ€™t buy magic. They buy defensibility.â€�
 Diagram:
 
 ```
-INGEST â†’ EXTRACT â†’ INVENTORY â†’ SCORE â†’ PLAN â†’ AUDIT
-   â†‘         â†‘          â†‘          â†‘       â†‘       â†‘
+INGEST → EXTRACT → INVENTORY → SCORE → PLAN → AUDIT
+   ↑         ↑          ↑          ↑       ↑       ↑
   PDF      rules      assets     weights  owners  export
 ```
 
-Sidebar: â€œSwappable domain pack: KYC Â· digital lending Â· cyber. Same engine.â€
+Sidebar: “Swappable domain pack: KYC · digital lending · cyber. Same engine.”
 
-Speaker note: â€œThis is why we can absorb the next brief without a rewrite.â€
+Speaker note: “This is why we can absorb the next brief without a rewrite.”
 
 ---
 
@@ -109,14 +109,14 @@ Speaker note: â€œThis is why we can absorb the next brief without a rewrite.
 
 **What changes on Monday.**
 
-- **sub-30 ms** to assess a circular vs **2â€“3 weeks** of manual impact analysis
+- **sub-30 ms** to assess a circular vs **2–3 weeks** of manual impact analysis
 - **100%** of obligations evidence-linked in the demo
 - **25** change tasks and **297** effort-days surfaced before the first meeting
 - **0** untraceable approvals
 
-Footer: Pilot target â€” one regulator, one business line, 90 days.
+Footer: Pilot target — one regulator, one business line, 90 days.
 
-Speaker note: â€œWeâ€™re not claiming production accuracy. Weâ€™re claiming the workflow is now traceable end to end.â€
+Speaker note: “We’re not claiming production accuracy. We’re claiming the workflow is now traceable end to end.”
 
 ---
 
@@ -124,13 +124,13 @@ Speaker note: â€œWeâ€™re not claiming production accuracy. Weâ€™re
 
 **Three people. Six hours. One spine.**
 
-- [Name] â€” backend, impact engine
-- [Name] â€” frontend, product design
-- [Name] â€” narrative, data, QA
+- [Name] — backend, impact engine
+- [Name] — frontend, product design
+- [Name] — narrative, data, QA
 
 **The ask:** a 90-day pilot with one compliance team and one control library.
 
-Footer: `github.com/<org>/regula` Â· demo video Â· contact
+Footer: `github.com/<org>/regula` · demo video · contact
 
 ---
 
