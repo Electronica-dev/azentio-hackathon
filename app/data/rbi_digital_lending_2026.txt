@@ -1,0 +1,34 @@
+RESERVE BANK OF INDIA
+Department of Regulation
+Central Office, Mumbai 400 001
+
+RBI/2026-27/92
+DoR.STR.REC.51/21.04.048/2026-27                        October 24, 2026
+
+Digital Lending Directions, 2025
+Amendment – 2026
+
+1. Short title and commencement
+(1) This Direction may be called the Digital Lending (Amendment) Direction, 2026.
+(2) It shall come into force with effect from January 15, 2027.
+
+2. Amendment to Section 7 — default loss guarantee
+In Section 7 of the Directions, for the words "five per cent", the words "ten per cent" shall be substituted.
+The enhanced limit shall apply only where the lending service provider has been subjected to an annual audit of its recovery practices.
+
+3. Insertion of new Section 9A — key fact statement
+After Section 9 of the Directions, the following section shall be inserted, namely:
+9A. Key fact statement
+(1) Every Regulated Entity shall provide a key fact statement to the borrower in English and in the language of the State where the borrower resides.
+(2) The key fact statement shall include the annual percentage rate, the total cost of credit, the recovery agent details and the grievance redressal mechanism.
+(3) The borrower shall acknowledge receipt of the key fact statement through an explicit action, and the acknowledgement shall be retained for eight years.
+
+4. Amendment to Section 12 — cooling off period
+In Section 12 of the Directions, for the words "three days", the words "seven days" shall be substituted.
+During the cooling off period the borrower shall be permitted to exit the loan by repaying the principal and the proportionate interest without any penalty.
+
+5. Insertion of new Section 15A — reporting of lending service providers
+After Section 15 of the Directions, the following section shall be inserted, namely:
+15A. Reporting of lending service providers
+(1) Every Regulated Entity shall report the onboarding, termination and material change in the ownership of a lending service provider to the Credit Information Companies within fifteen calendar days.
+(2) The Regulated Entity shall conduct an annual information security audit of every lending service provider and shall report the findings to the Board.

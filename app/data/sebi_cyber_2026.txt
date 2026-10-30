@@ -1,0 +1,20 @@
+SECURITIES AND EXCHANGE BOARD OF INDIA
+Cyber Security and Cyber Resilience Framework
+
+SEBI/HO/MIRSD/TPD/CIR/P/2026/148                  October 21, 2026
+
+Cyber Security and Cyber Resilience Framework for Market Infrastructure Institutions
+Amendment – 2026
+
+1. Short title and commencement
+This circular shall come into force with effect from February 1, 2027.
+
+2. Amendment to Clause 4 — security operations centre
+Every regulated entity shall operate a security operations centre that monitors its critical systems on a twenty-four by seven basis and shall retain the logs for a period of one hundred and eighty days.
+
+3. Insertion of new Clause 6A — third party risk
+Every regulated entity shall conduct a cyber security assessment of every third party service provider before onboarding and at least once every twelve months thereafter.
+Where the assessment identifies a material gap, the regulated entity shall not share customer data with the service provider until the gap is remediated.
+
+4. Amendment to Clause 9 — incident reporting
+Every regulated entity shall report a cyber incident to SEBI within six hours of detection and shall submit a root cause analysis within twenty-one days.

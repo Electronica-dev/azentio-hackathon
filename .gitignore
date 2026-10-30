@@ -1,0 +1,22 @@
+# runtime
+app/data/db.json
+__pycache__/
+*.pyc
+.pytest_cache/
+.chrome-profile/
+chrome-profile/
+
+# editor / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+
+# office temp
+deck/~$*
+~$*
+
+# local
+*.log
+
+.dsh-office-*
