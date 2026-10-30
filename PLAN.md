@@ -3,6 +3,8 @@
 
 > Theme (from the official challenge portfolio): **“Track changes and assess policy, process and system impact.”**
 > The detailed brief drops at 10:00. This plan assumes the brief adds *constraints*, not a new universe.
+>
+> **Status: the scaffold is already built and committed (`baseline`).** Engine, API, three circulars, a 41-asset inventory, five screens, tests and this deck already run. Tomorrow is re-pointing the machine at the brief — not bootstrapping it.
 
 ---
 
