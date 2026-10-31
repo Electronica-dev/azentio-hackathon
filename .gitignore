@@ -20,3 +20,7 @@ deck/~$*
 *.log
 
 .dsh-office-*
+
+# harness / editor integration (local only)
+.dsh-integration/
+.zed/
