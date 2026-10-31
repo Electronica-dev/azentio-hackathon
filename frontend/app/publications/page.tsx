@@ -1,31 +1,11 @@
-import { Dashboard } from "@/components/dashboard/dashboard"
-import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton"
-import { normalizeFilters } from "@/lib/domain"
-import { getRegulaState } from "@/lib/state"
-import { Suspense } from "react"
+import { redirect } from "next/navigation"
 
-/**
- * Index of publications — same dashboard, but the repository opens focused on
- * the queue given in `?state=`, so `/publications?state=unresolved` is a
- * shareable link to a queue.
- */
-export default function Page(props: PageProps<"/publications">) {
-  return (
-    <Suspense fallback={<DashboardSkeleton />}>
-      <PublicationIndex searchParams={props.searchParams} />
-    </Suspense>
-  )
-}
-
-async function PublicationIndex({ searchParams }: Pick<PageProps<"/publications">, "searchParams">) {
-  const [params, envelope] = await Promise.all([searchParams, getRegulaState()])
-  return (
-    <Dashboard
-      state={envelope.state}
-      filters={normalizeFilters(params)}
-      degraded={envelope.degraded}
-      degradedReason={envelope.error}
-      origin={envelope.origin}
-    />
-  )
+/** The repository moved to /regulatory; keep old `/publications?state=…` links working. */
+export default async function Page({ searchParams }: PageProps<"/publications">) {
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(await searchParams)) {
+    if (typeof value === "string") params.set(key, value)
+  }
+  const query = params.toString()
+  redirect(`/regulatory${query ? `?${query}` : ""}`)
 }

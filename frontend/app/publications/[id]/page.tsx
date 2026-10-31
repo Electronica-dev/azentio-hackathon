@@ -40,7 +40,7 @@ async function PublicationView({ params, searchParams }: { params: Params; searc
 
   return (
     <>
-      <AppHeader origin={origin} degraded={degraded} />
+      <AppHeader active="regulatory" origin={origin} degraded={degraded} />
       <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <PublicationDetail detail={detail} state={state} highlight={highlight} />
       </main>

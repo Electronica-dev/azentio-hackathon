@@ -11,7 +11,7 @@ export default function NotFound() {
         No publication in the repository has this identifier. It may have been superseded, or the link may be out of
         date.
       </p>
-      <Button className="mt-2" render={<Link href="/#repository" />}>
+      <Button className="mt-2" render={<Link href="/regulatory#repository" />}>
         Back to all publications
       </Button>
     </div>

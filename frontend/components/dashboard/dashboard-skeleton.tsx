@@ -4,7 +4,7 @@ import { AppHeader } from "./app-header"
 export function DashboardSkeleton() {
   return (
     <>
-      <AppHeader />
+      <AppHeader active="regulatory" />
       <main className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-8 sm:px-6" aria-busy="true" aria-live="polite">
         <div className="flex items-end justify-between gap-4">
           <div className="grid gap-2">

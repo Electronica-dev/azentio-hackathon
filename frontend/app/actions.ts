@@ -115,7 +115,7 @@ export async function uploadCircular(input: {
     if (!response.ok) {
       return { ok: false, message: data?.error ?? `upload returned HTTP ${response.status}` }
     }
-    revalidatePath("/")
+    revalidatePath("/", "layout")
     return { ...(data ?? {}), ok: true }
   } catch (error) {
     return { ok: false, message: error instanceof Error ? error.message : "upload failed" }
@@ -139,7 +139,7 @@ export async function confirmRelationship(
       const data = (await response.json().catch(() => null)) as { error?: string } | null
       return { ok: false, message: data?.error ?? `link returned HTTP ${response.status}` }
     }
-    revalidatePath("/")
+    revalidatePath("/", "layout")
     return { ok: true }
   } catch (error) {
     return { ok: false, message: error instanceof Error ? error.message : "link failed" }
@@ -181,4 +181,53 @@ export async function getSyncSchedule(): Promise<SyncSchedule> {
 /** Set the sync cron expression, or pass "off" to make sync manual-only. */
 export async function setSyncSchedule(cron: string): Promise<SyncSchedule> {
   return syncScheduleRequest({ method: "POST", body: JSON.stringify({ cron }) })
+}
+
+export type OrgResult = { ok: boolean; added?: number; message?: string }
+
+async function orgRequest(path: string, body: unknown): Promise<OrgResult> {
+  try {
+    const response = await fetch(`${API}/api/org/${path}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+      cache: "no-store",
+      signal: AbortSignal.timeout(120_000),
+    })
+    const data = (await response.json().catch(() => null)) as { added?: unknown[]; error?: string } | null
+    if (!response.ok) return { ok: false, message: data?.error ?? `request returned HTTP ${response.status}` }
+    revalidatePath("/", "layout")
+    return { ok: true, added: data?.added?.length ?? 0 }
+  } catch (error) {
+    return { ok: false, message: error instanceof Error ? error.message : "request failed" }
+  }
+}
+
+/**
+ * Store one internal document. Bulk uploads call this once per file so no
+ * single request approaches the Server Action body limit.
+ */
+export async function uploadOrgDocument(input: {
+  filename: string
+  content_base64: string
+  category: string
+  department?: string
+  owner?: string
+  version?: string
+  review_date?: string
+}): Promise<OrgResult> {
+  const { filename, content_base64, ...meta } = input
+  return orgRequest("documents", { files: [{ filename, content_base64 }], ...meta })
+}
+
+/** Add assets or people from one form entry or a CSV file's text. */
+export async function addOrgRecords(
+  kind: "assets" | "people",
+  input: { item: Record<string, string> } | { csv: string },
+): Promise<OrgResult> {
+  return orgRequest(kind, input)
+}
+
+export async function deleteOrgRecord(kind: "documents" | "assets" | "people", id: string): Promise<OrgResult> {
+  return orgRequest(`${kind}/${encodeURIComponent(id)}/delete`, {})
 }

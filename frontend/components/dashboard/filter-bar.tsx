@@ -65,7 +65,7 @@ export function FilterBar({ dashboard, filters }: { dashboard: Dashboard; filter
 
   return (
     <form
-      action="/#repository"
+      action="/regulatory#repository"
       method="get"
       onChange={(event) => {
         if (event.target instanceof HTMLSelectElement) event.currentTarget.requestSubmit()
@@ -128,7 +128,7 @@ export function FilterBar({ dashboard, filters }: { dashboard: Dashboard; filter
 
       {active ? (
         <Link
-          href={filters.state ? `/?state=${filters.state}#repository` : "/#repository"}
+          href={filters.state ? `/regulatory?state=${filters.state}#repository` : "/regulatory#repository"}
           className="inline-flex h-9 items-center gap-1 rounded-lg px-2 text-sm font-medium text-muted-foreground hover:text-foreground"
         >
           <XIcon className="size-4" aria-hidden />

@@ -6,7 +6,7 @@ import json
 from datetime import date, datetime
 from pathlib import Path
 
-from . import audit
+from . import audit, org
 from .changes import build_changes, summary as changes_summary
 from .ingest import build_clauses
 from .pipeline import run_source
@@ -24,7 +24,7 @@ def _read(name: str) -> str:
 
 def load_seed() -> tuple[list[dict], list[dict], dict[str, str], dict[str, str]]:
     sources = json.loads(_read("sources.json"))
-    assets = json.loads(_read("inventory.json"))
+    assets = org.load_assets()  # data/org/assets.json, seeded from inventory.json
     docs = {s["doc"]: _read(s["doc"]) for s in sources}
     priors = {s["prior_doc"]: _read(s["prior_doc"]) for s in sources if s.get("prior_doc")}
     return sources, assets, docs, priors

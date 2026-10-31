@@ -13,7 +13,7 @@ from urllib.parse import urlparse, unquote
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
-from regula import audit, changes, extract_api, pipeline, relate, rss, schedule, store, upload  # noqa: E402
+from regula import audit, changes, extract_api, org, pipeline, relate, rss, schedule, store, upload  # noqa: E402
 
 WEB = ROOT.parent / "web"
 LOCK = threading.Lock()
@@ -105,6 +105,11 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(200, {"ok": True, "sources": len(STATE["sources"]), "audit": len(STATE["audit"])})
         if path in ("/api/sync/schedule", "/api/sync/schedule/"):
             return self._json(200, SCHEDULER.status())
+        if path in ("/api/org", "/api/org/"):
+            return self._json(200, org.snapshot())
+        if path in ("/api/overview", "/api/overview/"):
+            with LOCK:
+                return self._json(200, org.overview(STATE))
         if path in ("/api/changes", "/api/changes/"):
             with LOCK:
                 items = changes.build_changes(STATE)
@@ -236,6 +241,9 @@ class Handler(BaseHTTPRequestHandler):
                     return self._json(400, {"error": str(exc)})
             return self._json(200, {"task": task})
 
+        if parts[:2] == ["api", "org"] and len(parts) >= 3:
+            return self._org(parts[2:])
+
         if path == "/api/reset":
             with LOCK:
                 STATE = store.build_state()
@@ -243,6 +251,40 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(200, {"ok": True})
 
         return self._json(404, {"error": "unknown endpoint"})
+
+    def _org(self, rest: list[str]) -> None:
+        """POST /api/org/{documents|assets|people} adds; /api/org/{kind}/{id}/delete removes."""
+        kind = rest[0]
+        if kind not in ("documents", "assets", "people"):
+            return self._json(404, {"error": "unknown endpoint"})
+        if len(rest) == 3 and rest[2] == "delete":
+            try:
+                with LOCK:
+                    if kind == "documents":
+                        org.delete_document(rest[1])
+                    elif kind == "assets":
+                        org.delete_asset(STATE, rest[1])
+                        store.save(STATE)
+                    else:
+                        org.delete_person(rest[1])
+            except KeyError:
+                return self._json(404, {"error": f"{kind[:-1] if kind != 'people' else 'person'} not found"})
+            return self._json(200, {"ok": True})
+        if len(rest) != 1:
+            return self._json(404, {"error": "unknown endpoint"})
+        body = self._body()
+        try:
+            with LOCK:
+                if kind == "documents":
+                    added = org.add_documents(body, actor=body.get("actor") or "Organisation upload")
+                elif kind == "assets":
+                    added = org.add_assets(STATE, body)
+                    store.save(STATE)
+                else:
+                    added = org.add_people(body)
+        except ValueError as exc:
+            return self._json(400, {"error": str(exc)})
+        return self._json(200, {"added": added})
 
     def _static(self, path: str) -> None:
         rel = "index.html" if path in ("", "/") else path.lstrip("/")

@@ -110,7 +110,7 @@ export function PublicationDetail({ detail, state, highlight }: { detail: Source
     <div className="grid gap-8">
       <div className="grid gap-4">
         <Link
-          href="/#repository"
+          href="/regulatory#repository"
           className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeftIcon className="size-4" aria-hidden />

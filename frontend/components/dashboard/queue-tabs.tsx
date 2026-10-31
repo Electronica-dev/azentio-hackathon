@@ -18,12 +18,12 @@ const HINT: Record<DashboardState | "all", string> = {
 export function QueueTabs({ dashboard, filters }: { dashboard: Dashboard; filters: Filters }) {
   const region = filters.region ? `region=${filters.region}` : ""
   const tabs: { key: DashboardState | "all"; label: string; count: number; href: string }[] = [
-    { key: "all", label: "All", count: dashboard.counts.sources, href: region ? `/?${region}#repository` : "/#repository" },
+    { key: "all", label: "All", count: dashboard.counts.sources, href: region ? `/regulatory?${region}#repository` : "/regulatory#repository" },
     ...DASHBOARD_STATE_ORDER.map((key) => ({
       key,
       label: DASHBOARD_STATE[key].short,
       count: dashboard.counts.byState[key],
-      href: `/?state=${key}${region ? `&${region}` : ""}#repository`,
+      href: `/regulatory?state=${key}${region ? `&${region}` : ""}#repository`,
     })),
   ]
   const current = filters.state ?? "all"

@@ -265,6 +265,12 @@ restart, after which `.env` applies again.
 | POST | `/api/tasks/{id}/status` | Move a task through its workflow |
 | POST | `/api/reset` | Rebuild from seed |
 | GET | `/api/health` | Liveness |
+| GET | `/api/overview` | Compliance score with its breakdown, critical gaps, deadlines, missing document types |
+| GET | `/api/org` | Internal documents, assets and people |
+| POST | `/api/org/documents` | Upload internal documents (`{files:[{filename, content_base64}], category, department, owner, version, review_date}`) |
+| POST | `/api/org/assets` | Add assets: `{item}`, `{items}` or `{csv}` (`name,type,owner,department,criticality,description,tags`) |
+| POST | `/api/org/people` | Add people: `{item}`, `{items}` or `{csv}` (`name,email,department,designation`) |
+| POST | `/api/org/{documents\|assets\|people}/{id}/delete` | Remove one record |
 
 ## Data honesty
 
