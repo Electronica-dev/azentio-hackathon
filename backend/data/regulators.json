@@ -1,0 +1,41 @@
+[
+  {
+    "id": "feed-rbi-kyc",
+    "region": "INDIA",
+    "authority": "RBI",
+    "name": "Reserve Bank of India — Master Directions",
+    "homepage": "https://www.rbi.org.in/Scripts/BS_ViewMasDirections.aspx",
+    "feed": "https://www.rbi.org.in/Scripts/BS_ViewMasDirections.aspx",
+    "mirror": "rbi_kyc_2026.txt",
+    "frequency": "daily",
+    "enabled": true,
+    "offline": true,
+    "notes": "Existing KYC amendment. Mirror reuses the seeded document."
+  },
+  {
+    "id": "feed-sebi-cyber",
+    "region": "INDIA",
+    "authority": "SEBI",
+    "name": "SEBI — Circulars",
+    "homepage": "https://www.sebi.gov.in/sebiweb/home/HomeAction.do?doListing=yes&sid=1",
+    "feed": "https://www.sebi.gov.in/sebiweb/home/HomeAction.do?doListing=yes&sid=1",
+    "mirror": "sebi_cyber_2026.txt",
+    "frequency": "daily",
+    "enabled": true,
+    "offline": true,
+    "notes": "Existing SEBI cyber framework. Mirror reuses the seeded document."
+  },
+  {
+    "id": "feed-rbi-ai",
+    "region": "INDIA",
+    "authority": "RBI",
+    "name": "Reserve Bank of India — New Guidelines",
+    "homepage": "https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx",
+    "feed": "https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx",
+    "mirror": "feeds/rbi-new-2026.txt",
+    "frequency": "daily",
+    "enabled": true,
+    "offline": true,
+    "notes": "New AI credit-decisioning guidelines. Not in sources.json — discovery should find it."
+  }
+]

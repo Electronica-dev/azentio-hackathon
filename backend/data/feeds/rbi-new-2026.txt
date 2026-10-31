@@ -1,0 +1,33 @@
+RESERVE BANK OF INDIA
+Department of Regulation
+Central Office, Mumbai 400 001
+
+RBI/2026-27/101
+DoR.STR.REC.52/21.04.048/2026-27                        October 31, 2026
+
+Guidelines on Responsible Use of Artificial Intelligence
+in Credit Decisioning
+
+1. Short title and commencement
+(1) These Guidelines may be called the Reserve Bank of India (Responsible Use of Artificial Intelligence in Credit Decisioning) Guidelines, 2026.
+(2) They shall come into force with effect from January 15, 2027.
+
+2. Applicability
+(1) These Guidelines shall apply to every Regulated Entity that uses, or proposes to use, an artificial intelligence or machine learning model to assess creditworthiness, set a credit limit or price a loan.
+(2) The Board of the Regulated Entity shall approve an AI governance policy before any such model is placed into production.
+
+3. Explainability of automated credit decisions
+(1) Every Regulated Entity shall be able to explain, in simple language and within seven days of a request, the principal factors that influenced an automated credit decision.
+(2) The Regulated Entity shall maintain a model card for every model in production describing its purpose, training data, limitations and known failure modes.
+
+4. Model validation and monitoring
+(1) Every Regulated Entity shall validate each credit model before deployment and at least once every twelve months thereafter.
+(2) The Regulated Entity shall monitor model performance and bias indicators at least once every quarter and shall report material deterioration to the Board.
+
+5. Third-party and vendor models
+(1) A Regulated Entity shall not deploy a third-party AI model for credit decisioning unless the vendor discloses the model's training approach and the Regulated Entity completes a due diligence assessment.
+(2) The Regulated Entity shall maintain a register of all AI vendors and models used in credit decisioning.
+
+6. Grievance redressal and audit trail
+(1) Every Regulated Entity shall provide a grievance channel for customers who believe an automated decision was unfair and shall resolve complaints within thirty days.
+(2) The Regulated Entity shall retain the inputs, outputs and version identifier of every automated credit decision for a period of eight years.
