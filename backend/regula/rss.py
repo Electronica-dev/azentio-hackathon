@@ -52,6 +52,44 @@ FEEDS: list[dict] = [
         "homepage": "https://www.sebi.gov.in/",
         "enabled": True,
     },
+    {
+        # SAMA publishes through a Drupal rulebook, not RSS. The seed keeps the
+        # publication visible when the listing page is unavailable or unparsed.
+        "id": "sama-circulars",
+        "authority": "SAMA",
+        "region": "KSA",
+        "name": "SAMA circulars",
+        "kind": "html",
+        "url": "https://rulebook.sama.gov.sa/en/sama-circulars",
+        "homepage": "https://rulebook.sama.gov.sa",
+        "enabled": True,
+        "seeds": [
+            {
+                "title": "Circular Re. Counter-Fraud Fundamental Requirements",
+                "url": "https://www.rulebook.sama.gov.sa/en/circular-re-counter-fraud-fundamental-requirements",
+                "published": "",
+            }
+        ],
+    },
+    {
+        # CBUAE rulebook; centralbank.ae sits behind bot protection, so live
+        # discovery is best-effort and the seed is the reliable fallback.
+        "id": "cbuae-rulebook",
+        "authority": "CBUAE",
+        "region": "UAE",
+        "name": "CBUAE rulebook",
+        "kind": "html",
+        "url": "https://rulebook.centralbank.ae/en",
+        "homepage": "https://rulebook.centralbank.ae",
+        "enabled": True,
+        "seeds": [
+            {
+                "title": "Guidance Manual for Circular Number 33/2015 — Liquidity Regulations at Banks",
+                "url": "https://rulebook.centralbank.ae/en/rulebook/guidance-manual-circular-number-332015-liquidity-regulations-banks",
+                "published": "",
+            }
+        ],
+    },
 ]
 
 UA = (
@@ -108,9 +146,38 @@ def parse_feed(raw: bytes | str, feed: dict) -> list[dict]:
     return items
 
 
+def parse_listing(raw: bytes | str, feed: dict) -> list[dict]:
+    """Best-effort extraction of publication links from a rulebook listing page."""
+    if isinstance(raw, bytes):
+        raw = raw.decode("utf-8", errors="replace")
+    anchors = re.findall(r'href="([^"]+)"[^>]*>\s*([^<]{8,180})<', raw, re.S)
+    items: list[dict] = []
+    seen: set[str] = set()
+    for href, label in anchors:
+        label = _clean(label)
+        if not label:
+            continue
+        if not re.search(r"circular|rulebook|regulation|guidance|notice", (href + " " + label).lower()):
+            continue
+        if href.startswith("/"):
+            href = feed["homepage"].rstrip("/") + href
+        if not href.startswith("http") or href in seen:
+            continue
+        seen.add(href)
+        items.append({
+            "title": label[:240],
+            "url": href,
+            "published": "",
+            "authority": feed["authority"],
+            "region": feed.get("region", "INDIA"),
+            "feed_id": feed["id"],
+        })
+        if len(items) >= 20:
+            break
+    return items
+
+
 def fetch_feed(url: str, timeout: float = TIMEOUT) -> bytes:
-    # The RBI host intermittently answers 406 when a feed is polled quickly;
-    # one short retry with a permissive Accept header is enough.
     for attempt in range(2):
         request = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "*/*"})
         try:
@@ -139,11 +206,23 @@ def discover(state: dict, feeds: list[dict] | None = None, actor: str = "Discove
     errors: list[dict] = []
 
     for feed in feeds:
+        items: list[dict] = []
         try:
-            items = parse_feed(fetch_feed(feed["url"]), feed)
+            raw = fetch_feed(feed["url"])
+            items = parse_feed(raw, feed) if feed.get("kind", "rss") == "rss" else parse_listing(raw, feed)
         except Exception as exc:  # noqa: BLE001 - one bad feed must not stop the run
             errors.append({"id": feed["id"], "error": str(exc)[:200]})
-            continue
+
+        for seed in feed.get("seeds", []):
+            if not any(item["url"] == seed["url"] for item in items):
+                items.append({
+                    "title": seed["title"],
+                    "url": seed["url"],
+                    "published": seed.get("published", ""),
+                    "authority": feed["authority"],
+                    "region": feed.get("region", "INDIA"),
+                    "feed_id": feed["id"],
+                })
 
         for item in items:
             if item["url"] in known:

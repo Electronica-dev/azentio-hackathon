@@ -1,0 +1,12 @@
+CBUAE — Central Bank of the United Arab Emirates
+Rulebook publication (metadata record)
+
+Title: Guidance Manual for Circular Number 33/2015 — Liquidity Regulations at Banks
+Authority: CBUAE
+Jurisdiction: United Arab Emirates
+Source: https://rulebook.centralbank.ae/en/rulebook/guidance-manual-circular-number-332015-liquidity-regulations-banks
+Rulebook: https://rulebook.centralbank.ae/en
+
+Status: discovered from the CBUAE Rulebook. Full text is fetched on demand by the
+ingestion step; this record exists so the publication is visible in the repository
+before extraction.

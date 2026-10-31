@@ -1,0 +1,12 @@
+SAMA — Saudi Central Bank
+Rulebook publication (metadata record)
+
+Title: Circular Re. Counter-Fraud Fundamental Requirements
+Authority: SAMA
+Jurisdiction: Saudi Arabia
+Source: https://www.rulebook.sama.gov.sa/en/circular-re-counter-fraud-fundamental-requirements
+Listing: https://rulebook.sama.gov.sa/en/sama-circulars
+
+Status: discovered from the SAMA Rulebook. Full text is fetched on demand by the
+ingestion step; this record exists so the publication is visible in the repository
+before extraction.

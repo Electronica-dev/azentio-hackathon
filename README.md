@@ -71,17 +71,19 @@ flowchart LR
 5. **Who decides** — every acceptance or rejection is a human action recorded in the audit
    chain.
 
-### India sources
+### Sources
 
-| Authority | Website | Discovery |
-|---|---|---|
-| RBI | https://www.rbi.org.in/ | RSS: https://rbi.org.in/notifications_rss.xml |
-| SEBI | https://www.sebi.gov.in/ | RSS: https://www.sebi.gov.in/sebirss.xml |
+| Region | Authority | Website | Discovery |
+|---|---|---|---|
+| India | RBI | https://www.rbi.org.in/ | RSS: https://rbi.org.in/notifications_rss.xml |
+| India | SEBI | https://www.sebi.gov.in/ | RSS: https://www.sebi.gov.in/sebirss.xml |
+| KSA | SAMA | https://rulebook.sama.gov.sa/ | Rulebook circular listing (no RSS) |
+| UAE | CBUAE | https://rulebook.centralbank.ae/ | Rulebook listing (no RSS; seed fallback) |
 
-Neither regulator publishes a JSON API; both publish RSS, which `POST /api/discover` consumes.
-Each item becomes a repository document with title, link, publication date, authority and
-region, deduplicated by URL. Full text for a configured document is fetched by
-`backend/scrape.py`.
+Neither Indian regulator publishes a JSON API; both publish RSS, which `POST /api/discover`
+consumes. SAMA and CBUAE publish through rulebooks instead — the discovery step parses their
+listing pages and falls back to a seeded publication when the site is unavailable, so the
+repository always carries the configured jurisdictions.
 
 The committed demo documents are the RBI **Digital Lending** pair:
 
