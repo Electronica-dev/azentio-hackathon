@@ -35,6 +35,32 @@ decision chain: **regulation → clause → obligation → impacted asset → ow
 - **Plan and prove**: owned tasks with due dates, human approval, and a SHA-256 hash chain over
   every extraction, approval and status change.
 
+## Frontend
+
+The Next.js app is organised into three main pages:
+
+- **Home (`/`)** gives a compliance score and its breakdown, headline counts, critical gaps,
+  upcoming deadlines and open tasks by department. The figures link to the records behind them.
+- **Regulatory (`/regulatory`)** is the publication repository, with status queues and filters.
+  From here, reviewers can upload a circular, run regulator discovery, configure scheduled sync
+  and open a publication to inspect its changes and impacts. The older `/publications` route
+  redirects here while preserving its filters.
+- **Organisation (`/organisation`)** manages the internal records used to understand regulatory
+  impact. Its Documents, Assets and People tabs each show record counts and support adding and
+  removing records:
+  - **Documents** accepts multiple PDF, DOCX, TXT, Markdown, HTML or CSV files (up to 8 MB each).
+    Set the document type, department, owner, version and next review date for each upload batch;
+    browse the repository by document type and see overdue reviews.
+  - **Assets** covers systems, processes, controls and policies. Add one at a time or import a
+    CSV; include its owner, department, criticality, description and tags. Assets are used to
+    assess future regulatory changes.
+  - **People** is the owner directory. Add a person with their name, work email, department and
+    designation, or import a CSV. The directory supplies owner suggestions when adding documents
+    and assets.
+
+  CSV imports use the first row as the header and are validated as a whole; if a row is invalid,
+  the import is rejected rather than partially applied.
+
 ## Architecture
 
 The engine is one block. Discovery feeds it, the audit chain records it, the dashboard reads it.
@@ -191,9 +217,11 @@ backend/
     store.py            state, persistence, report export
   data/                 documents, prior versions, inventory, regulators
 frontend/
-  app/                  Next.js routes (dashboard, publication detail)
-  components/dashboard/ dashboard, clause diff, obligation card, filters
-  lib/                  contract types, domain adapters, state fetch
+  app/                  Next.js routes (home, regulatory, organisation, publication detail)
+  components/dashboard/ regulatory repository, publication detail, filters and actions
+  components/home/      compliance overview
+  components/organisation/ documents, assets and people management
+  lib/                  contract types, domain adapters, API/state fetch
 contracts/api.md        API contract
 docs/                   requirements, plan, demo script
 ```
