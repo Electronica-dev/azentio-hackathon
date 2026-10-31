@@ -22,6 +22,7 @@ import { KpiRow } from "./kpi-row"
 import { SectionHeading } from "./primitives"
 import { RegionMatrix } from "./region-matrix"
 import { ChangeClassLegend, RepositoryTable } from "./repository-table"
+import { RunDiscovery } from "./run-discovery"
 
 const STATE_ICON: Record<DashboardState, React.ComponentType<{ className?: string }>> = {
   new_publication: FileSearchIcon,
@@ -47,11 +48,10 @@ const SORT_LABEL: Record<string, string> = {
 }
 
 /**
- * Monitor strip (R4/R5 preview). The contract's v1.1 `meta.monitor` block is
- * optional: when it is absent we say so instead of inventing a last/next run.
- * The actions are disabled until `POST /api/monitor/run` and
- * `POST /api/sources/upload` exist — a button that silently does nothing is
- * worse than one that explains itself.
+ * Monitor strip (R4/R5). The contract's v1.1 `meta.monitor` block is optional:
+ * when it is absent we say so instead of inventing a last/next run. "Run
+ * monitoring" calls the discovery action (RBI + SEBI RSS); upload is still
+ * waiting on POST /api/sources/upload, so its button explains itself.
  */
 function MonitorStrip({ state }: { state: RegulaState }) {
   const { monitor } = describeMeta(state.meta)
@@ -85,10 +85,7 @@ function MonitorStrip({ state }: { state: RegulaState }) {
         </span>
       )}
       <span className="ml-auto inline-flex items-center gap-1.5">
-        <Button type="button" size="sm" disabled title="Lands with POST /api/monitor/run">
-          <RadioTowerIcon aria-hidden />
-          Run monitoring
-        </Button>
+        <RunDiscovery />
         <Button type="button" variant="outline" size="sm" disabled title="Lands with POST /api/sources/upload">
           <UploadIcon aria-hidden />
           Upload circular

@@ -64,6 +64,58 @@ class RssTests(unittest.TestCase):
         self.assertEqual(len(run["errors"]), 1)
         self.assertEqual(run["stats"]["new"], 2)
 
+    def test_non_directive_is_listed_but_not_ingested(self):
+        original = rss.fetch_page
+        rss.fetch_page = lambda url, timeout=12: b"<html><body><p>UNSC sanctions list update</p></body></html>"
+        try:
+            state = {
+                "documents": [{
+                    "id": "doc-x", "transport": "rss", "status": "new", "url": "https://x",
+                    "title": "Updates to UNSC sanctions list", "authority": "RBI",
+                    "region": "INDIA", "published": "2026-10-30",
+                }],
+                "sources": [],
+                "audit": [],
+            }
+            out = rss.ingest_new(state, limit=1)
+        finally:
+            rss.fetch_page = original
+
+        self.assertEqual(out, [])
+        self.assertEqual(state["documents"][0]["status"], "reference")
+        self.assertEqual(state["sources"], [])
+
+    def test_directive_with_numbered_clauses_is_queued(self):
+        page = (
+            b"<html><body><p>RBI/2026-27/1</p>"
+            b"<p>1. Scope</p><p>These directions apply to banks.</p>"
+            b"<p>2. Definitions</p><p>Bank means a bank.</p>"
+            b"<p>3. Reporting</p><p>A bank shall report monthly.</p></body></html>"
+        )
+        original_page, original_data = rss.fetch_page, rss.DATA
+        try:
+            rss.fetch_page = lambda url, timeout=12: page
+            rss.DATA = APP / "data"
+            try:
+                doc = {
+                    "id": "doc-test-queue", "transport": "rss", "status": "new", "url": "https://x",
+                    "title": "Digital Lending Directions", "authority": "RBI",
+                    "region": "INDIA", "published": "2026-10-30",
+                }
+                state = {"documents": [doc], "sources": [], "audit": []}
+                out = rss.ingest_new(state, limit=1)
+            finally:
+                rss.fetch_page, rss.DATA = original_page, original_data
+
+            self.assertEqual(len(out), 1)
+            self.assertEqual(doc["status"], "ingested")
+            target = APP / "data" / "discovered" / f"{out[0]['source_id']}.txt"
+            self.assertTrue(target.exists())
+            self.assertEqual(len(state["sources"]), 1)
+        finally:
+            target = APP / "data" / "discovered" / "src-test-queue.txt"
+            target.unlink(missing_ok=True)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

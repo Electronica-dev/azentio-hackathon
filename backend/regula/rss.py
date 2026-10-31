@@ -13,14 +13,24 @@ second run reports them as duplicates rather than ingesting them again.
 from __future__ import annotations
 
 import hashlib
+import html
 import re
 import time
+import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta
 from email.utils import parsedate_to_datetime
+from pathlib import Path
 
 from . import audit
+from .ingest import parse_document
+
+DATA = Path(__file__).resolve().parent.parent / "data"
+REF_RE = re.compile(r"\b(?:RBI|SEBI)/[A-Za-z0-9/\-]{4,40}")
+# Not every notification is a directive: sanctions lists and press releases are
+# recorded as references but never queued as an analysable source.
+REGULATORY_RE = re.compile(r"direction|guideline|circular|master direction|amendment|regulation|framework", re.I)
 
 # Configured India feeds. `enabled` lets a demo run with only one authority.
 FEEDS: list[dict] = [
@@ -99,9 +109,17 @@ def parse_feed(raw: bytes | str, feed: dict) -> list[dict]:
 
 
 def fetch_feed(url: str, timeout: float = TIMEOUT) -> bytes:
-    request = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/rss+xml, application/xml"})
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        return response.read()
+    # The RBI host intermittently answers 406 when a feed is polled quickly;
+    # one short retry with a permissive Accept header is enough.
+    for attempt in range(2):
+        request = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "*/*"})
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                return response.read()
+        except urllib.error.HTTPError as exc:
+            if attempt == 1 or exc.code not in (406, 429):
+                raise
+            time.sleep(1.5)
 
 
 def document_id(url: str) -> str:
@@ -171,3 +189,114 @@ def discover(state: dict, feeds: list[dict] | None = None, actor: str = "Discove
         f"{run['stats']['discovered']} discovered · {run['stats']['new']} new · {run['stats']['duplicates']} duplicates · {len(errors)} errors",
     )
     return run
+
+
+def extract_text(raw: bytes) -> str:
+    """Generic HTML → text for a publication page. Good enough to queue for review."""
+    text = raw.decode("utf-8", errors="replace")
+    text = re.sub(r"<(script|style|noscript|nav|footer|header)[^>]*>.*?</\1>", " ", text, flags=re.S | re.I)
+    text = re.sub(r"<br\s*/?>", "\n", text, flags=re.I)
+    text = re.sub(r"</(p|div|tr|li|h[1-6]|table|section|article)>", "\n", text, flags=re.I)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = html.unescape(text).replace("\ufffd", " ")
+    lines = [re.sub(r"\s+", " ", line).strip() for line in text.splitlines()]
+    lines = [line for line in lines if len(line) > 2]
+    return "\n".join(lines)
+
+
+def fetch_page(url: str, timeout: float = TIMEOUT) -> bytes:
+    request = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "text/html"})
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        return response.read()
+
+
+def _effective(published: str) -> tuple[str, bool]:
+    """A discovered item has no effective date in the feed; keep the demo timeline positive."""
+    today = date.today()
+    if published:
+        try:
+            stated = date.fromisoformat(published)
+            if stated > today:
+                return stated.isoformat(), True
+        except ValueError:
+            pass
+    return (today + timedelta(days=90)).isoformat(), True
+
+
+def ingest_new(state: dict, limit: int = 3, actor: str = "Discovery Service") -> list[dict]:
+    """Fetch full text for the newest discovered items and queue them as sources."""
+    documents = state.get("documents", [])
+    pending = [
+        doc for doc in documents
+        if doc.get("transport") == "rss" and doc.get("status") == "new" and not doc.get("source_id") and doc.get("url")
+    ]
+    pending.sort(key=lambda doc: doc.get("published") or "", reverse=True)
+    out: list[dict] = []
+    now = audit.now_iso()
+
+    for doc in pending[: max(0, limit)]:
+        if not REGULATORY_RE.search(doc.get("title") or ""):
+            doc["status"] = "reference"
+            doc["note"] = "not a directive — listed only"
+            continue
+        try:
+            text = extract_text(fetch_page(doc["url"]))
+        except Exception as exc:  # noqa: BLE001 - one bad page must not stop discovery
+            doc["status"] = "error"
+            doc["error"] = str(exc)[:200]
+            continue
+        if len(text) < 120:
+            doc["status"] = "empty"
+            continue
+
+        # Drop the site chrome above the circular header.
+        lines = text.splitlines()
+        for index, line in enumerate(lines):
+            if REF_RE.search(line):
+                lines = lines[index:]
+                break
+        text = "\n".join(lines)
+        if len(parse_document(text)) < 3:
+            doc["status"] = "reference"
+            doc["note"] = "no numbered clauses extracted"
+            continue
+
+        source_id = "src-" + doc["id"].removeprefix("doc-")
+        target = DATA / "discovered" / f"{source_id}.txt"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text, encoding="utf-8", newline="\n")
+
+        match = REF_RE.search(text)
+        ref = match.group(0) if match else ""
+        effective, assumed = _effective(doc.get("published") or "")
+        source = {
+            "id": source_id,
+            "regulator": doc.get("authority") or "RBI",
+            "ref": ref,
+            "title": doc.get("title") or "Discovered publication",
+            "short_title": (doc.get("title") or "Discovered publication")[:60],
+            "published": doc.get("published") or "",
+            "effective": effective,
+            "effective_assumed": assumed,
+            "status": "new",
+            "risk": "medium",
+            "owner": "Unassigned",
+            "region": doc.get("region") or "INDIA",
+            "authority": doc.get("authority") or "RBI",
+            "jurisdiction": "India",
+            "doc_type": "circular",
+            "url": doc.get("url"),
+            "doc": f"discovered/{source_id}.txt",
+            "prior_doc": None,
+            "summary": text[:280].replace("\n", " "),
+            "tags": [],
+            "discovered_from": doc.get("feed_id"),
+        }
+        state.setdefault("sources", []).append(source)
+        doc["status"] = "ingested"
+        doc["source_id"] = source_id
+        doc["processed_at"] = now
+        audit.add(state, actor, "source.ingested", ref or source_id, f"{source['title']} · discovered via {doc.get('feed_id')}")
+        out.append({"source_id": source_id, "title": source["title"], "chars": len(text), "url": doc["url"]})
+
+    return out

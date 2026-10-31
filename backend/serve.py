@@ -103,8 +103,15 @@ class Handler(BaseHTTPRequestHandler):
         parts = [p for p in path.split("/") if p]
 
         if path in ("/api/discover", "/api/discover/"):
+            body = self._body()
+            try:
+                limit = max(0, min(20, int(body.get("limit", 3))))
+            except (TypeError, ValueError):
+                limit = 3
+            ingest = body.get("ingest", True) is not False
             with LOCK:
                 run = rss.discover(STATE)
+                run["ingested"] = rss.ingest_new(STATE, limit=limit) if ingest else []
                 store.save(STATE)
             return self._json(200, run)
 

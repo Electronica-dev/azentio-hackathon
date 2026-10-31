@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import time
 from datetime import date
+from pathlib import Path
 
 from . import audit, enrich
 from .assess import build_impact
@@ -11,12 +12,24 @@ from .ingest import build_clauses
 from .match import Matcher
 from .planner import build_tasks
 
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+
 CLASS_OF_TYPE = {
     "added": "new_obligation",
     "removed": "withdrawn",
     "modified": "modified",
     "unchanged": "no_material_change",
 }
+
+
+def _doc_text(docs: dict[str, str], name: str | None) -> str:
+    """Seeded documents live in the dict; discovered ones are files under data/."""
+    if not name:
+        return ""
+    if name in docs:
+        return docs[name]
+    path = DATA_DIR / name
+    return path.read_text(encoding="utf-8") if path.exists() else ""
 
 
 def run_source(state: dict, source: dict, docs: dict[str, str], prior_docs: dict[str, str], actor: str = "Regula Agent") -> dict:
@@ -27,7 +40,7 @@ def run_source(state: dict, source: dict, docs: dict[str, str], prior_docs: dict
         steps.append({"name": name, "status": "done", "ms": max(1, round((time.perf_counter() - started) * 1000)), "detail": detail})
 
     s = time.perf_counter()
-    clauses = build_clauses(source, docs[source["doc"]], prior_docs.get(source.get("prior_doc") or ""))
+    clauses = build_clauses(source, _doc_text(docs, source.get("doc")), _doc_text(prior_docs, source.get("prior_doc")))
     state["clauses"] = [c for c in state["clauses"] if c["source_id"] != source["id"]] + clauses
     changed = sum(1 for c in clauses if c["change_type"] in ("modified", "added", "removed"))
     step("Ingest & align clauses", f"{len(clauses)} clauses · {changed} changed · redlines generated", s)

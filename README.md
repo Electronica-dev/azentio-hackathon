@@ -159,7 +159,7 @@ Without a key the deterministic pipeline still runs; enrichment fields stay empt
 | GET | `/api/state` | Full workspace: sources, clauses, obligations, impacts, tasks, audit |
 | GET | `/api/changes` | Classified change list with counts by class |
 | GET | `/api/export/{sourceId}.md` | Assessment pack as markdown |
-| POST | `/api/discover` | Run a monitoring cycle: fetch RBI + SEBI RSS, dedupe by URL |
+| POST | `/api/discover` | RSS discovery (RBI + SEBI), dedupe by URL, ingest newest directives |
 | POST | `/api/extract` | Extract text and obligations from an uploaded document |
 | POST | `/api/sources/{id}/run` | Analyse one publication |
 | POST | `/api/impacts/{id}/review` | Approve or reject an impact |
