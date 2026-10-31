@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import time
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 from . import audit, enrich
@@ -39,8 +39,10 @@ def run_source(state: dict, source: dict, docs: dict[str, str], prior_docs: dict
     def step(name: str, detail: str, started: float) -> None:
         steps.append({"name": name, "status": "done", "ms": max(1, round((time.perf_counter() - started) * 1000)), "detail": detail})
 
+    prior_text = _doc_text(prior_docs, source.get("prior_doc"))
+
     s = time.perf_counter()
-    clauses = build_clauses(source, _doc_text(docs, source.get("doc")), _doc_text(prior_docs, source.get("prior_doc")))
+    clauses = build_clauses(source, _doc_text(docs, source.get("doc")), prior_text)
     state["clauses"] = [c for c in state["clauses"] if c["source_id"] != source["id"]] + clauses
     changed = sum(1 for c in clauses if c["change_type"] in ("modified", "added", "removed"))
     step("Ingest & align clauses", f"{len(clauses)} clauses · {changed} changed · redlines generated", s)
@@ -48,7 +50,7 @@ def run_source(state: dict, source: dict, docs: dict[str, str], prior_docs: dict
     ai = {"enriched": False, "applied": 0, "total": len(clauses)}
     if source.get("ai") and enrich.is_configured():
         s = time.perf_counter()
-        ai = enrich.enrich_source(source, clauses, prior_docs.get(source.get("prior_doc") or ""))
+        ai = enrich.enrich_source(source, clauses, prior_text)
         detail = (f"{ai['applied']}/{ai['total']} clauses aligned & classified by model"
                   if ai["enriched"] else f"model unavailable ({ai.get('error', 'error')}) — deterministic output kept")
         step("AI align & classify", detail, s)
@@ -71,7 +73,15 @@ def run_source(state: dict, source: dict, docs: dict[str, str], prior_docs: dict
     assets_by_id = {a["id"]: a for a in state["assets"]}
     candidates = 0
     impacts: list[dict] = []
-    effective = date.fromisoformat(source["effective"])
+    # An upload may carry no effective date; keep the demo timeline positive
+    # rather than failing the whole run on an empty string.
+    stated = str(source.get("effective") or source.get("published") or "")[:10]
+    try:
+        effective = date.fromisoformat(stated)
+    except ValueError:
+        effective = date.today() + timedelta(days=90)
+        source["effective"] = effective.isoformat()
+        source["effective_assumed"] = True
     days_left = (effective - date.today()).days
     for obligation in obligations:
         matches = matcher.match(obligation)

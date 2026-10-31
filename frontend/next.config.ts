@@ -4,6 +4,11 @@ const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
     agentFeedback: true,
+    // Uploads travel to the API as base64 inside a Server Action; the backend
+    // caps the raw file at 8 MB, so leave room for the ~4/3 encoding overhead.
+    serverActions: {
+      bodySizeLimit: "12mb",
+    },
   },
   cacheComponents: true,
   partialPrefetching: true,

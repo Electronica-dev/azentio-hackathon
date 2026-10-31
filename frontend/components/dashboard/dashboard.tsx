@@ -1,7 +1,6 @@
-import { FileSearchIcon, Link2OffIcon, RadioTowerIcon, UploadIcon } from "lucide-react"
+import { FileSearchIcon, Link2OffIcon, RadioTowerIcon } from "lucide-react"
 import Link from "next/link"
 
-import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import {
   buildDashboard,
@@ -23,6 +22,7 @@ import { SectionHeading } from "./primitives"
 import { RegionMatrix } from "./region-matrix"
 import { ChangeClassLegend, RepositoryTable } from "./repository-table"
 import { RunDiscovery } from "./run-discovery"
+import { UploadCircular } from "./upload-circular"
 
 const STATE_ICON: Record<DashboardState, React.ComponentType<{ className?: string }>> = {
   new_publication: FileSearchIcon,
@@ -50,8 +50,8 @@ const SORT_LABEL: Record<string, string> = {
 /**
  * Monitor strip (R4/R5). The contract's v1.1 `meta.monitor` block is optional:
  * when it is absent we say so instead of inventing a last/next run. "Run
- * monitoring" calls the discovery action (RBI + SEBI RSS); upload is still
- * waiting on POST /api/sources/upload, so its button explains itself.
+ * monitoring" calls the discovery action (RBI + SEBI RSS); "Upload circular"
+ * posts a file and runs the same relationship ladder on it.
  */
 function MonitorStrip({ state }: { state: RegulaState }) {
   const { monitor } = describeMeta(state.meta)
@@ -86,10 +86,7 @@ function MonitorStrip({ state }: { state: RegulaState }) {
       )}
       <span className="ml-auto inline-flex items-center gap-1.5">
         <RunDiscovery />
-        <Button type="button" variant="outline" size="sm" disabled title="Lands with POST /api/sources/upload">
-          <UploadIcon aria-hidden />
-          Upload circular
-        </Button>
+        <UploadCircular />
       </span>
     </div>
   )

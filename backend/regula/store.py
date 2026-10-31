@@ -58,6 +58,8 @@ def build_state() -> dict:
         "audit": [],
     }
     for source in sources:
+        # A declared prior is a human pin: inference must never move it.
+        source["prior_pinned"] = bool(source.get("prior_doc"))
         text = docs[source["doc"]]
         state["documents"].append({
             "id": source["id"],
@@ -152,11 +154,37 @@ def save(state: dict) -> None:
     DB_PATH.write_text(json.dumps(state, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
 
+def restore_uploads(state: dict) -> int:
+    """Recreate missing upload text files from the database ledger.
+
+    The ledger is authoritative: if ``data/uploads`` is wiped but the database
+    survives, the next load rebuilds the files the pipeline reads.
+    """
+    restored = 0
+    for entry in state.get("uploads", []):
+        text = entry.get("text")
+        name = entry.get("doc")
+        if not text or not name or entry.get("text_truncated"):
+            continue
+        path = DATA_DIR / str(name)
+        if path.exists():
+            continue
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8", newline="\n")
+        restored += 1
+    return restored
+
+
 def load_or_build(reset: bool = False) -> dict:
     if not reset and DB_PATH.exists():
         try:
             state = json.loads(DB_PATH.read_text(encoding="utf-8"))
-            if state.get("meta", {}).get("as_of") == date.today().isoformat():
+            fresh = state.get("meta", {}).get("as_of") == date.today().isoformat()
+            # Uploads pin the database. Rebuilding over them just to refresh the
+            # demo seeds would silently delete real work, so once anything has
+            # been uploaded the stored state wins regardless of its date.
+            if fresh or state.get("uploads"):
+                restore_uploads(state)
                 return state
         except Exception:
             pass
@@ -197,6 +225,12 @@ def serialize(state: dict) -> dict:
         sources.append(item)
     out = dict(state)
     out.setdefault("documents", [])
+    # The ledger keeps the extracted body in the database; the API does not need
+    # to ship it back on every /api/state read.
+    out["uploads"] = [
+        {key: value for key, value in entry.items() if key != "text"}
+        for entry in state.get("uploads", [])
+    ]
     out["sources"] = sources
     out["summary"] = {
         "sources": len(state["sources"]),

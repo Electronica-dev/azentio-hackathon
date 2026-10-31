@@ -13,7 +13,7 @@ from urllib.parse import urlparse, unquote
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
-from regula import changes, discover, extract_api, pipeline, rss, store  # noqa: E402
+from regula import audit, changes, extract_api, pipeline, relate, rss, store, upload  # noqa: E402
 
 WEB = ROOT.parent / "web"
 LOCK = threading.Lock()
@@ -118,12 +118,65 @@ class Handler(BaseHTTPRequestHandler):
         if path in ("/api/extract", "/api/extract/"):
             body = self._body()
             try:
-                payload = extract_api.extract_document(body)
+                payload = extract_api.extract_document(body, STATE)
             except ValueError as exc:
                 return self._json(400, {"error": str(exc)})
             except Exception as exc:  # noqa: BLE001 - never 500 on user input
                 return self._json(400, {"error": f"could not extract: {exc}"})
             return self._json(200, payload)
+
+        if parts[:3] == ["api", "sources", "upload"]:
+            body = self._body()
+            with LOCK:
+                try:
+                    result = upload.ingest(STATE, body, actor=body.get("actor") or "Manual upload")
+                except ValueError as exc:
+                    return self._json(400, {"error": str(exc)})
+                except Exception as exc:  # noqa: BLE001 - never 500 on a bad file
+                    return self._json(400, {"error": f"could not ingest upload: {exc}"})
+                store.save(STATE)
+            return self._json(200, result)
+
+        if parts[:2] == ["api", "sources"] and len(parts) == 4 and parts[3] == "relate":
+            body = self._body()
+            with LOCK:
+                source = next((s for s in STATE["sources"] if s["id"] == parts[2]), None)
+                if not source:
+                    return self._json(404, {"error": "source not found"})
+                verdict = relate.assist(relate.relate_state(STATE, source), source)
+                applied = bool(body.get("apply")) and verdict["status"] == "linked"
+                run = None
+                if applied:
+                    relate.apply_relationship(STATE, source, verdict)
+                    run = pipeline.run_source(STATE, source, DOCS, PRIORS)["run"]
+                store.save(STATE)
+            return self._json(200, {"relationship": verdict, "applied": applied, "run": run})
+
+        if parts[:2] == ["api", "sources"] and len(parts) == 4 and parts[3] == "link":
+            body = self._body()
+            actor = body.get("actor") or "Reviewer"
+            with LOCK:
+                source = next((s for s in STATE["sources"] if s["id"] == parts[2]), None)
+                prior = next((s for s in STATE["sources"] if s["id"] == body.get("prior_source_id")), None)
+                if not source or not prior:
+                    return self._json(404, {"error": "source not found"})
+                source["prior_doc"] = prior.get("doc")
+                source["relationship"] = {
+                    "status": "linked",
+                    "prior_source_id": prior["id"],
+                    "prior_document_id": prior["id"],
+                    "confidence": 1.0,
+                    "rationale": f"Confirmed by {actor}.",
+                    "pinned": False,
+                    "signals": [{"name": "human_confirmed", "value": 1.0,
+                                 "detail": f"{actor} selected this predecessor"}],
+                    "alternatives": [],
+                }
+                run = pipeline.run_source(STATE, source, DOCS, PRIORS)["run"]
+                audit.add(STATE, actor, "relationship.confirmed", source.get("ref") or source["id"],
+                          f"prior → {prior['id']}")
+                store.save(STATE)
+            return self._json(200, {"source": source, "relationship": source["relationship"], "run": run})
 
         if parts[:2] == ["api", "sources"] and len(parts) == 4 and parts[3] == "run":
             sid = parts[2]

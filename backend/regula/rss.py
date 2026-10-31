@@ -28,7 +28,7 @@ from email.utils import parsedate_to_datetime
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from . import audit
+from . import audit, relate
 from .ingest import parse_document
 
 DATA = Path(__file__).resolve().parent.parent / "data"
@@ -424,6 +424,14 @@ def ingest_new(state: dict, limit: int = 3, actor: str = "Discovery Service") ->
             "tags": [],
             "discovered_from": doc.get("feed_id"),
         }
+        # Link before queueing: a discovered amendment is only analysable once
+        # we know which earlier publication it changes.
+        verdict = relate.relate_state(state, source)
+        relate.apply_relationship(state, source, verdict)
+        if verdict["status"] != "standalone":
+            audit.add(state, actor, f"relationship.{verdict['status']}", ref or source_id,
+                      f"{source['title']} → {verdict.get('prior_source_id') or 'unresolved'} · {verdict['rationale'][:140]}")
+
         state.setdefault("sources", []).append(source)
         doc["status"] = "ingested"
         doc["source_id"] = source_id

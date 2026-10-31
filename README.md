@@ -33,36 +33,94 @@ decision chain: **regulation → clause → obligation → impacted asset → ow
 
 ## Architecture
 
+The engine is one block. Discovery feeds it, the audit chain records it, the dashboard reads it.
+
 ```mermaid
 flowchart LR
-    subgraph SRC["India source websites"]
-        RBI["RBI — rbi.org.in<br/>Master Directions and notifications"]
-        SEBI["SEBI — sebi.gov.in<br/>Circulars"]
+    subgraph SRC["Regulator sources"]
+        RBI["RBI"]
+        SEBI["SEBI"]
+        SAMA["SAMA"]
+        CBUAE["CBUAE"]
     end
 
-    RBI --> MON["Monitor / scraper<br/>RSS discovery + HTML extraction, SHA-256"]
-    SEBI --> MON
-    MON --> REPO[("Repository<br/>document text + hash")]
-    REPO --> PARSE["Clause parser<br/>numbered sections and headings"]
-    PARSE --> DETECT{"Change detection<br/>hash, clause diff, prior link"}
-    DETECT -- "no change" --> NONE["No material change"]
-    DETECT -- "changed" --> ALIGN["AI alignment<br/>new clause to prior clause"]
-    ALIGN --> CLASS["Classification<br/>new / modified / withdrawn /<br/>deadline extended or shortened /<br/>clarification / no material change"]
-    CLASS --> OBL["Obligations<br/>verbatim quote + clause reference"]
-    OBL --> IMPACT["Impact and plan<br/>asset gap, owner, effort, due date"]
-    OBL --> UI["Dashboard<br/>filters, side-by-side diff, quote trace"]
-    IMPACT --> UI
-    CLASS --> AUDIT[("Hash-chained audit trail")]
-    IMPACT --> AUDIT
+    SRC --> MON["Monitor<br/>RSS · rulebook listing · manual upload"]
+    MON --> REPO[("Repository<br/>text · hash · reference · dates")]
+    REPO --> ENGINE["Engine<br/>relate → parse → diff → classify<br/>→ extract → assess → plan"]
+    ENGINE --> OUT["Redline · obligations<br/>impacts · plan"]
+    ENGINE --> AUDIT[("Hash-chained audit")]
+    OUT --> UI["Dashboard<br/>filters · side-by-side diff · quote trace"]
 ```
+
+The interesting part is the first step inside that block: deciding **which** earlier document to
+compare against. Getting this wrong is worse than declining — a false link turns every clause
+into a change and fabricates a whole impact assessment — so the engine is allowed to abstain.
+
+### How the engine selects a document and scores the relationship
+
+```mermaid
+flowchart TD
+    NEW["New document<br/>upload · discovery · backfill"] --> PIN{"Manual pin<br/>prior_doc set?"}
+    PIN -- yes --> LINKED["linked<br/>confidence 1.00"]
+    PIN -- no --> GATES{"Hard gates<br/>authority · date order<br/>language · duplicate hash"}
+    GATES -- reject --> STANDALONE["standalone<br/>no diff"]
+    GATES -- pass --> DECISIVE{"Decisive evidence<br/>cites a reference, or a<br/>targeted supersession phrase?"}
+    DECISIVE -- yes --> LINKED85["linked<br/>≥ 0.85"]
+    DECISIVE -- no --> NEAREST{"Same instrument and<br/>nearest predecessor and<br/>clause overlap ≥ 0.15?"}
+    NEAREST -- yes --> LINKED78["linked<br/>0.78"]
+    NEAREST -- no --> SCORE["Supporting score<br/>instrument 0.42 · clause similarity 0.24<br/>coverage 0.10 · parameters 0.12<br/>headings 0.04 · adjacency 0.08<br/>+ 0.07 nearest predecessor"]
+    SCORE --> BAND{"Score band"}
+    BAND -- "≥ 0.70, no near-tie" --> LINKED70["linked<br/>0.70 – 0.84"]
+    BAND -- "0.45 – 0.70, or two<br/>candidates within 0.06" --> PROPOSED["proposed<br/>top 3 + rationale<br/>model opinion optional"]
+    BAND -- "below 0.45" --> STANDALONE
+    PROPOSED --> HUMAN{"Human confirms?"}
+    HUMAN -- yes --> LINKED
+    HUMAN -- no --> STANDALONE
+    LINKED --> DIFF["Parse clauses → word-level redline<br/>→ one of seven change classes"]
+    LINKED85 --> DIFF
+    LINKED78 --> DIFF
+    LINKED70 --> DIFF
+    DIFF --> OLDER{"Older than a version<br/>already in the repository?"}
+    OLDER -- yes --> REPOINT["Re-point the successor's edge<br/>and re-diff that document"]
+    OLDER -- no --> DONE["Impacts · tasks · audit"]
+    REPOINT --> DONE
+```
+
+A few properties worth calling out:
+
+- **Recall and warrant are separate.** Hard gates plus an IDF-ranked instrument identity decide
+  *what could* be a predecessor; citation, supersession language and clause evidence decide
+  *whether it is one*. Topical similarity alone is a sibling, not a version.
+- **Clause-level similarity, not document cosine.** An amendment is often a fifth the length of
+  the consolidated instrument it amends, so a global cosine buries the signal. Each new clause
+  is matched against its best counterpart in the candidate.
+- **The version chain outranks global similarity.** The predecessor is the nearest earlier
+  version of the same instrument, ordered by publication date — or by the fiscal year encoded in
+  the reference when no date is stated.
+- **Backfill is a first-class path.** Uploading an older circular re-points the successor's edge
+  and re-diffs it, so history arriving late does not leave a stale comparison behind.
+- **A manual pin always wins.** A declared `prior_doc` skips inference entirely: the demo stays
+  deterministic even if scoring changes.
+- **The model only advises.** When configured, it is given the shortlist and may argue for one
+  candidate or for none. Its opinion is attached to a `proposed` result; it never creates a link.
+
+| Constant | Value | What it buys |
+|---|---|---|
+| `DECISIVE` | 0.85 | confidence floor for an evidence-backed link |
+| `AUTO_LINK` | 0.70 | weak-score ceiling for an automatic diff |
+| `PROPOSE_FLOOR` | 0.45 | below this a document is standalone, not "unresolved" |
+| `AMBIGUITY_MARGIN` | 0.06 | a near-tie always goes to a human |
+| `IDENTITY_CONTENT_FLOOR` | 0.15 | stops a same-titled but unrelated document from auto-linking |
 
 ### How a change is detected
 
 1. **New vs already processed** — the extracted text is hashed (SHA-256); an unchanged hash
    means the document is skipped. Each fetch records the document, its hash and timestamps.
-2. **Which prior document** — explicit repeal/amendment references in the text (e.g. the 2025
-   Directions repeal the 2022 Guidelines), confirmed by an AI relationship pass with a
-   confidence score; below the floor it is flagged *unresolved* instead of guessed.
+2. **Which prior document** — `regula/relate.py` gates on authority, date order, language and
+   duplicate hash, then scores the survivors on instrument identity, cited references,
+   supersession language, clause-level similarity, parameter overlap and chain adjacency.
+   Decisive evidence links automatically; anything in the grey band comes back as *proposed*
+   with its top three candidates and a rationale, and waits for a human instead of guessing.
 3. **Which clause changed** — the new document is parsed into numbered clauses and diffed
    against the prior document at word level: added, modified, removed.
 4. **What kind of change** — an AI pass maps each clause to its prior counterpart and assigns
@@ -70,6 +128,15 @@ flowchart LR
    produce a class if the model is unavailable.
 5. **Who decides** — every acceptance or rejection is a human action recorded in the audit
    chain.
+
+### Persistence
+
+There is one database: `backend/data/db.json`, written by `regula/store.py` on every mutation. An
+upload is persisted in full — the source record, its clauses, obligations, impacts, tasks, the
+relationship decision, any backfill it caused and the audit events — not just held in memory. An
+`uploads` ledger keeps the extracted body beside its SHA-256, byte size, uploader and timestamp, so
+a lost `data/uploads` file is rebuilt from the database on the next load. Uploads pin the database:
+once one exists, a seed rebuild will not run over it.
 
 ### Sources
 
@@ -106,7 +173,10 @@ backend/
     enrich.py           AI alignment, change class, significance
     changes.py          change taxonomy across the repository
     discover.py         source monitoring (feeds + offline mirrors)
-    extract_api.py      manual upload / text extraction
+    rss.py              RSS / rulebook discovery and ingestion
+    relate.py           predecessor selection and relationship scoring
+    upload.py           manual upload: extraction, relate, backfill
+    extract_api.py      preview extraction + relationship for a pasted document
     match.py            asset matching over the control library
     assess.py           severity, numeric gap, rationale, effort
     planner.py          owned tasks, dependencies, due dates
@@ -164,7 +234,10 @@ Without a key the deterministic pipeline still runs; enrichment fields stay empt
 | GET | `/api/changes` | Classified change list with counts by class |
 | GET | `/api/export/{sourceId}.md` | Assessment pack as markdown |
 | POST | `/api/discover` | RSS discovery (RBI + SEBI), dedupe by URL, ingest newest directives |
-| POST | `/api/extract` | Extract text and obligations from an uploaded document |
+| POST | `/api/extract` | Preview text, obligations and the relationship for a pasted document |
+| POST | `/api/sources/upload` | Upload TXT/DOCX/PDF/HTML, relate it, diff it, backfill successors |
+| POST | `/api/sources/{id}/relate` | Re-run relationship inference; `{apply:true}` accepts a link |
+| POST | `/api/sources/{id}/link` | Confirm a predecessor from the grey band and re-run the diff |
 | POST | `/api/sources/{id}/run` | Analyse one publication |
 | POST | `/api/impacts/{id}/review` | Approve or reject an impact |
 | POST | `/api/tasks/{id}/status` | Move a task through its workflow |
@@ -179,9 +252,10 @@ library is a curated model of a mid-size Indian bank's KYC and lending stack, no
 from a GRC system. The optional LLM is used for alignment, classification and significance;
 every obligation still carries a verbatim quote and clause reference.
 
-Known limits: PDF/OCR ingestion is not wired (HTML and text are), SEBI monitoring is
-configured but not yet fetched live, scoring weights are hand-tuned for the demo, and approval
-is a demo identity rather than SSO.
+Known limits: PDF text extraction is best-effort — a scanned PDF is accepted and flagged
+`needs_ocr` rather than guessed at; SEBI monitoring is configured but not yet fetched live; the
+relationship weights are hand-tuned for the demo and exposed as constants in `relate.py`; and
+approval is a demo identity rather than SSO.
 
-Roadmap: PDF extraction, live SEBI ingestion, scheduled monitoring, control-library import,
-reviewer workflow and a labelled accuracy benchmark.
+Roadmap: OCR for scanned PDFs, live SEBI ingestion, scheduled monitoring, control-library
+import, reviewer workflow and a labelled relationship benchmark.

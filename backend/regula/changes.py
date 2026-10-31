@@ -120,11 +120,27 @@ def build_changes(state: dict) -> list[dict]:
         if clause.get("change_type") == "unchanged":
             continue
         source = sources.get(clause.get("source_id"), {})
+        relationship = source.get("relationship") or {}
         prior_file = source.get("prior_doc")
         prior_doc = doc_by_file.get(prior_file) if prior_file else None
+        if not prior_doc and relationship.get("prior_document_id"):
+            prior_doc = next(
+                (d for d in documents if str(d.get("id")) == str(relationship["prior_document_id"])),
+                None,
+            )
         own_doc = doc_by_file.get(source.get("doc")) if source.get("doc") else None
         document_id = own_doc.get("id") if own_doc else clause.get("document_id") or source.get("id")
         verdict = classify(clause)
+
+        if prior_doc:
+            link = "linked"
+        elif relationship.get("status") == "proposed":
+            # Surfaced as a question, not silently treated as standalone.
+            link = "proposed"
+        else:
+            link = "unresolved"
+        confidence = float(relationship.get("confidence", 0.9 if prior_doc else 0.2))
+
         out.append({
             "id": f"chg-{clause['id']}",
             "document_id": document_id,
@@ -142,8 +158,10 @@ def build_changes(state: dict) -> list[dict]:
             "text": clause.get("text", ""),
             "redline": clause.get("redline", []),
             "prior_document_id": prior_doc.get("id") if prior_doc else None,
-            "relationship": "linked" if prior_doc else "unresolved",
-            "confidence": 0.9 if prior_doc else 0.2,
+            "relationship": link,
+            "confidence": round(confidence, 2),
+            "relationship_rationale": relationship.get("rationale", ""),
+            "relationship_signals": relationship.get("signals", []),
         })
     return out
 
@@ -156,4 +174,5 @@ def summary(changes: list[dict]) -> dict:
         "total": len(changes),
         "by_class": counts,
         "unresolved": sum(1 for c in changes if c["relationship"] == "unresolved"),
+        "proposed": sum(1 for c in changes if c["relationship"] == "proposed"),
     }

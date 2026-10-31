@@ -301,3 +301,78 @@ def enrich_source(source: dict, clauses: list[dict], prior_text: str | None, bat
     if errors:
         stats["partial_errors"] = len(errors)
     return stats
+
+
+RELATION_SYSTEM = """You are a regulatory change analyst. You are given ONE new regulatory
+document and a SHORTLIST of earlier documents from the same repository. Decide which single
+candidate, if any, the new document amends or replaces.
+
+Return STRICT JSON only (no markdown, no prose) with exactly this shape:
+{
+  "prior_document_id": string|null,
+  "confidence": number,
+  "evidence": string,
+  "rationale": string
+}
+
+Rules:
+- prior_document_id MUST be one of the candidate ids, or null. Never invent an id.
+- Choose null unless the new document amends, replaces, supersedes or implements the
+  candidate. Topical similarity alone is NOT a relationship: two circulars on the same
+  subject are siblings, not versions of each other.
+- evidence: the exact phrase from the new document that establishes the relationship
+  (for example "in supersession of", or a cited reference). Empty string when null.
+- confidence: 0 to 1. Use below 0.5 when the shortlist is weak or the text is ambiguous.
+- rationale: one sentence a compliance reviewer can act on, max 200 characters.
+- Output valid JSON only. Escape any double quote inside a string.
+"""
+
+
+def adjudicate_relationship(source: dict, candidates: list[dict]) -> dict | None:
+    """Ask the model to argue for one shortlisted candidate.
+
+    The model is an *adviser*: it may only choose from the ids it was given, and
+    a null answer is a first-class outcome. It never returns an id outside the
+    shortlist, and it never changes a document's link status by itself.
+    """
+    if not is_configured() or not candidates:
+        return None
+
+    listing = "\n".join(
+        f"- id={c.get('document_id')} | title={c.get('title', '')} "
+        f"| ref={c.get('ref') or '-'} | published={c.get('published') or 'unknown'} "
+        f"| score={c.get('confidence')} | {c.get('rationale', '')}"
+        for c in candidates
+    )
+    prompt = (
+        f"NEW DOCUMENT\nTitle: {_clip(source.get('title', ''), 200)}\n"
+        f"Reference: {source.get('ref') or '-'}\n"
+        f"Excerpt: {_clip(source.get('text') or source.get('summary', ''), 900)}\n\n"
+        f"CANDIDATES\n{listing}"
+    )
+
+    try:
+        result = _chat([
+            {"role": "system", "content": RELATION_SYSTEM},
+            {"role": "user", "content": prompt},
+        ], timeout=45)
+    except Exception:  # noqa: BLE001 - advice must never break the pipeline
+        return None
+
+    ids = {str(c.get("document_id")) for c in candidates}
+    chosen = result.get("prior_document_id")
+    chosen = None if chosen in (None, "", "null") else str(chosen)
+    if chosen not in ids:
+        chosen = None
+
+    try:
+        confidence = max(0.0, min(1.0, float(result.get("confidence") or 0.0)))
+    except (TypeError, ValueError):
+        confidence = 0.0
+
+    return {
+        "prior_document_id": chosen,
+        "confidence": round(confidence, 2),
+        "evidence": str(result.get("evidence") or "")[:200],
+        "rationale": str(result.get("rationale") or "")[:400],
+    }
