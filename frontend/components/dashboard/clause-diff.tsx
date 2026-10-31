@@ -63,19 +63,50 @@ export function RedlineText({ segments }: { segments: Clause["redline"] }) {
   )
 }
 
+function highlightInBody(body: string, quote?: string) {
+  if (!quote) return body
+  const needle = quote.trim()
+  if (!needle) return body
+
+  let index = body.indexOf(needle)
+  let length = needle.length
+  if (index < 0 && needle.length > 40) {
+    // Quotes can differ by a trailing space or punctuation; anchor on the start.
+    const anchor = needle.slice(0, 40).trimEnd()
+    index = body.indexOf(anchor)
+    length = needle.length
+  }
+  if (index < 0) return body
+
+  return (
+    <>
+      {body.slice(0, index)}
+      <mark className="rounded-sm bg-amber-200/80 px-0.5 text-foreground decoration-amber-500/60 underline-offset-2 dark:bg-amber-400/30">
+        {body.slice(index, index + length)}
+      </mark>
+      {body.slice(index + length)}
+    </>
+  )
+}
+
 /**
  * Side-by-side previous vs updated clause with highlights and a plain-English
  * significance sentence (R16). When there is no prior text the left column
  * explains that rather than showing an empty box.
+ *
+ * `highlightQuote` marks the exact sentence a reviewer arrived from (an
+ * obligation card), so the change is traceable to the source text (R19).
  */
 export function ClauseDiff({
   clause,
   priorLabel,
   priorHref,
+  highlightQuote,
 }: {
   clause: Clause
   priorLabel?: string
   priorHref?: string
+  highlightQuote?: string
 }) {
   const hasPrior = Boolean(clause.previous_text?.trim())
   const hasRedline = Boolean(clause.redline?.length)
@@ -116,7 +147,9 @@ export function ClauseDiff({
             <span className="size-1.5 rounded-full bg-emerald-400" aria-hidden />
             Updated · as published
           </div>
-          <p className="text-xs leading-relaxed whitespace-pre-wrap">{clause.body}</p>
+          <p className="text-xs leading-relaxed whitespace-pre-wrap">
+            {highlightInBody(clause.body, highlightQuote)}
+          </p>
         </div>
       </div>
 

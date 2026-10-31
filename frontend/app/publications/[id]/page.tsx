@@ -8,6 +8,7 @@ import { buildDetail } from "@/lib/domain"
 import { getRegulaState } from "@/lib/state"
 
 type Params = Promise<{ id: string }>
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { id } = await params
@@ -20,22 +21,25 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   }
 }
 
-export default function Page({ params }: { params: Params }) {
+export default function Page({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
   return (
     <Suspense fallback={<DashboardSkeleton />}>
-      <PublicationView params={params} />
+      <PublicationView params={params} searchParams={searchParams} />
     </Suspense>
   )
 }
 
-async function PublicationView({ params }: { params: Params }) {
-  const [{ id }, { state }] = await Promise.all([params, getRegulaState()])
+async function PublicationView({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
+  const [{ id }, query, { state }] = await Promise.all([params, searchParams, getRegulaState()])
   const detail = buildDetail(state, decodeURIComponent(id))
   if (!detail) notFound()
 
+  const rawHighlight = Array.isArray(query.highlight) ? query.highlight[0] : query.highlight
+  const highlight = rawHighlight ? decodeURIComponent(rawHighlight) : undefined
+
   return (
     <div className="mx-auto w-full max-w-[1400px] px-4 py-4">
-      <PublicationDetail detail={detail} state={state} />
+      <PublicationDetail detail={detail} state={state} highlight={highlight} />
     </div>
   )
 }

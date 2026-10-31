@@ -54,7 +54,11 @@ export function ObligationCard({
         <div className="min-w-0 flex-1">
           <h3 className="text-sm font-semibold leading-snug">{obligation.subject}</h3>
           <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-[10px] text-muted-foreground">
-            <a href={`#${obligation.clause_id}`} className="font-semibold text-primary hover:underline">
+            <a
+              href={`?highlight=${encodeURIComponent(obligation.id)}#${obligation.clause_id}`}
+              className="font-semibold text-primary hover:underline"
+              title="Highlight this quote in the source clause"
+            >
               {obligation.section_ref}
             </a>
             <span aria-hidden>·</span>

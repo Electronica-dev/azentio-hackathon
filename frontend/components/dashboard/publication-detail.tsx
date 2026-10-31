@@ -128,12 +128,18 @@ function RelationshipPanel({ detail }: { detail: SourceDetail }) {
  * Publication detail — "two clicks from dashboard to a clause quote" (R19):
  * dashboard row → this page → the obligation card carries the quote.
  */
-export function PublicationDetail({ detail, state }: { detail: SourceDetail; state: RegulaState }) {
+export function PublicationDetail({ detail, state, highlight }: { detail: SourceDetail; state: RegulaState; highlight?: string }) {
   const { row, prior, citedReferences } = detail
   const { source } = row
   const dashboardState = dashboardStateOf(source)
   const aiObligations = row.obligations.filter((obligation) => (obligation.applicability ?? []).includes("ai"))
   const changedClauses = row.clauses.filter((clause) => clause.change_type !== "unchanged")
+  const highlightObligation = highlight ? row.obligations.find((obligation) => obligation.id === highlight) : undefined
+  const highlightClauseId = highlightObligation?.clause_id
+  const visibleClauses =
+    highlightClauseId && !changedClauses.some((clause) => clause.id === highlightClauseId)
+      ? [...row.clauses.filter((clause) => clause.id === highlightClauseId), ...changedClauses]
+      : changedClauses
 
   return (
     <div className="grid gap-4">
@@ -273,12 +279,13 @@ export function PublicationDetail({ detail, state }: { detail: SourceDetail; sta
           <EmptyState title="No clauses were extracted for this publication" description="The document may still be queued for extraction." />
         ) : (
           <div className="grid gap-2">
-            {changedClauses.map((clause) => (
+            {visibleClauses.map((clause) => (
               <div key={clause.id} id={clause.id} className="scroll-mt-20">
                 <ClauseDiff
                   clause={clause}
                   priorLabel={prior?.ref}
                   priorHref={prior ? `/publications/${encodeURIComponent(prior.id)}#${clause.prior_clause_id ?? ""}` : undefined}
+                  highlightQuote={highlightObligation?.clause_id === clause.id ? highlightObligation.quote : undefined}
                 />
               </div>
             ))}
