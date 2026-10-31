@@ -67,11 +67,11 @@ export function SyncScheduleControl() {
   }
 
   if (!schedule) {
-    return <span className="text-[10px] text-muted-foreground">Loading auto-sync…</span>
+    return <span className="text-xs text-muted-foreground">Loading auto-sync…</span>
   }
   if (!schedule.ok) {
     return (
-      <span className="text-[10px] text-muted-foreground" title={schedule.message}>
+      <span className="text-xs text-muted-foreground" title={schedule.message}>
         Auto-sync unavailable
       </span>
     )
@@ -92,7 +92,7 @@ export function SyncScheduleControl() {
           setChoice(value ?? OFF)
         }}
       >
-        <SelectTrigger size="sm" className="h-7 w-40" aria-label="Auto-sync schedule">
+        <SelectTrigger size="sm" className="h-8 w-44 bg-card" aria-label="Auto-sync schedule">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -116,7 +116,7 @@ export function SyncScheduleControl() {
           placeholder="min hour day month weekday"
           aria-label="Custom cron expression"
           aria-invalid={error ? true : undefined}
-          className="h-7 w-44 font-mono"
+          className="h-8 w-48 bg-card font-mono"
         />
       ) : null}
       {dirty ? (
@@ -124,7 +124,7 @@ export function SyncScheduleControl() {
           {pending ? "Saving…" : "Save"}
         </Button>
       ) : null}
-      <span className="text-[10px] text-muted-foreground">
+      <span className="text-xs text-muted-foreground">
         {error ? (
           <span className="text-destructive">{error}</span>
         ) : schedule.enabled && schedule.next_run ? (

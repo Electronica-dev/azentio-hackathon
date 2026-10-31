@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Suspense } from "react"
 import { notFound } from "next/navigation"
 
+import { AppHeader } from "@/components/dashboard/app-header"
 import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton"
 import { PublicationDetail } from "@/components/dashboard/publication-detail"
 import { buildDetail } from "@/lib/domain"
@@ -30,7 +31,7 @@ export default function Page({ params, searchParams }: { params: Params; searchP
 }
 
 async function PublicationView({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
-  const [{ id }, query, { state }] = await Promise.all([params, searchParams, getRegulaState()])
+  const [{ id }, query, { state, origin, degraded }] = await Promise.all([params, searchParams, getRegulaState()])
   const detail = buildDetail(state, decodeURIComponent(id))
   if (!detail) notFound()
 
@@ -38,8 +39,11 @@ async function PublicationView({ params, searchParams }: { params: Params; searc
   const highlight = rawHighlight ? decodeURIComponent(rawHighlight) : undefined
 
   return (
-    <div className="mx-auto w-full max-w-[1400px] px-4 py-4">
-      <PublicationDetail detail={detail} state={state} highlight={highlight} />
-    </div>
+    <>
+      <AppHeader origin={origin} degraded={degraded} />
+      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
+        <PublicationDetail detail={detail} state={state} highlight={highlight} />
+      </main>
+    </>
   )
 }

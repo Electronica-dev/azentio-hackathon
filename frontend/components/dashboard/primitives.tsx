@@ -9,21 +9,31 @@ import { cn } from "@/lib/utils"
 /** A shadcn Badge carrying a domain chip (label + tone). Neutral fallback for unknown enums. */
 export function Chip({ chip, className, ...props }: { chip: ChipToken } & Omit<ComponentProps<typeof Badge>, "variant">) {
   return (
-    <Badge variant="outline" className={cn(chip.className, "font-medium", className)} {...props}>
+    <Badge variant="outline" className={cn("h-6 px-2.5 text-xs", chip.className, "font-medium", className)} {...props}>
       {chip.label}
     </Badge>
   )
 }
 
-export function ChangeClassBadge({ value, className }: { value?: string | null; className?: string }) {
+export function ChangeClassBadge({
+  value,
+  short,
+  className,
+}: {
+  value?: string | null
+  /** Use the short label ("Modified") instead of the full one. */
+  short?: boolean
+  className?: string
+}) {
   if (!value) {
     return (
-      <Badge variant="outline" className="border-dashed border-border bg-transparent text-muted-foreground">
+      <Badge variant="outline" className="h-6 border-dashed border-border bg-transparent px-2.5 text-xs text-muted-foreground">
         Unclassified
       </Badge>
     )
   }
-  return <Chip chip={changeClassChip(value)} className={className} />
+  const chip = changeClassChip(value)
+  return <Chip chip={short ? { ...chip, label: chip.short } : chip} className={className} />
 }
 
 export function RegionBadge({ region, className }: { region: Region | "OTHER"; className?: string }) {
@@ -61,7 +71,7 @@ export function Tag({
     <span
       title={title}
       className={cn(
-        "inline-flex items-center gap-1 rounded-sm border border-border bg-muted/40 px-1.5 py-px text-[10px] font-medium text-muted-foreground",
+        "inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 px-1.5 py-0.5 text-xs font-medium text-muted-foreground",
         className,
       )}
     >
@@ -88,8 +98,8 @@ export function SectionHeading({
   return (
     <div className={cn("flex items-end justify-between gap-3", className)}>
       <div className="min-w-0">
-        <h2 className="font-heading text-sm font-semibold tracking-tight">{title}</h2>
-        {hint ? <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p> : null}
+        <h2 className="font-heading text-lg font-semibold tracking-tight">{title}</h2>
+        {hint ? <p className="mt-1 text-sm text-muted-foreground">{hint}</p> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>
@@ -106,9 +116,9 @@ export function EmptyState({
   action?: React.ReactNode
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border px-6 py-12 text-center">
+    <div className="flex flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border px-6 py-12 text-center">
       <p className="text-sm font-medium">{title}</p>
-      {description ? <p className="max-w-md text-xs text-muted-foreground">{description}</p> : null}
+      {description ? <p className="max-w-md text-sm text-muted-foreground">{description}</p> : null}
       {action ? <div className="mt-2">{action}</div> : null}
     </div>
   )

@@ -32,10 +32,10 @@ export function clauseChangeChip(changeType: string) {
  */
 export function RedlineText({ segments }: { segments: Clause["redline"] }) {
   if (!segments || segments.length === 0) {
-    return <p className="text-xs text-muted-foreground">No word-level redline was produced for this clause.</p>
+    return <p className="text-sm text-muted-foreground">No word-level redline was produced for this clause.</p>
   }
   return (
-    <p className="text-xs leading-relaxed whitespace-pre-wrap">
+    <p className="text-sm leading-relaxed whitespace-pre-wrap">
       {segments.map((segment, index) => {
         if (segment.t === "del") {
           return (
@@ -90,9 +90,9 @@ function highlightInBody(body: string, quote?: string) {
 }
 
 /**
- * Side-by-side previous vs updated clause with highlights and a plain-English
- * significance sentence (R16). When there is no prior text the left column
- * explains that rather than showing an empty box.
+ * Side-by-side previous vs updated clause (R16): the plain-English
+ * significance leads, then before/after columns with the word-level redline.
+ * When there is no prior text the left column says so instead of an empty box.
  *
  * `highlightQuote` marks the exact sentence a reviewer arrived from (an
  * obligation card), so the change is traceable to the source text (R19).
@@ -111,74 +111,60 @@ export function ClauseDiff({
   const hasPrior = Boolean(clause.previous_text?.trim())
   const hasRedline = Boolean(clause.redline?.length)
   const change = clauseChangeChip(clause.change_type)
+  // Show the red/green markup in the "after" column, except when a reviewer
+  // arrived from an obligation: then the plain text with that quote marked.
+  const showRedline = hasRedline && !highlightQuote
 
   return (
-    <div className="rounded-lg ring-1 ring-foreground/10">
-      <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
-        <span className="font-mono text-[10px] text-muted-foreground">{clause.section_ref}</span>
-        <h3 className="min-w-0 flex-1 font-heading text-sm font-semibold leading-snug">{clause.heading}</h3>
-        <span className={cn("rounded-full border px-2 py-0.5 text-[10px] font-medium", change.className)}>
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-xs">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 pt-4">
+        <h3 className="min-w-0 flex-1 font-medium leading-snug">
+          {clause.heading}
+          <span className="ml-2 text-xs font-normal text-muted-foreground">{clause.section_ref}</span>
+        </h3>
+        <span className={cn("rounded-full border px-2.5 py-0.5 text-xs font-medium", change.className)}>
           {change.label}
         </span>
       </div>
 
-      <div className="grid gap-0 md:grid-cols-2">
-        <div className="border-b border-border px-3 py-2 md:border-b-0 md:border-r">
-          <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            <span className="size-1.5 rounded-full bg-rose-400" aria-hidden />
-            Previous {priorLabel ? `· ${priorLabel}` : ""}
+      <p className="px-4 pt-2 pb-4 text-sm leading-relaxed">
+        {clause.significance ?? clause.summary ?? "No summary was produced for this clause."}
+      </p>
+
+      <div className="grid border-t border-border md:grid-cols-2">
+        <div className="border-b border-border bg-muted/30 px-4 py-3 md:border-r md:border-b-0">
+          <div className="mb-2 text-xs font-medium text-muted-foreground">
+            Before{priorLabel ? ` · ${priorLabel}` : ""}
           </div>
           {hasPrior ? (
-            <p className="text-xs leading-relaxed whitespace-pre-wrap text-muted-foreground">{clause.previous_text}</p>
+            <p className="text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">{clause.previous_text}</p>
           ) : (
-            <p className="text-xs leading-relaxed text-muted-foreground italic">
-              No earlier text to compare. {clause.change_type === "added" ? "This clause is new in this publication." : "The prior version was not supplied with this document."}
+            <p className="text-sm leading-relaxed text-muted-foreground italic">
+              {clause.change_type === "added" ? "New clause — nothing to compare." : "No earlier text on file."}
               {priorHref ? (
-                <a href={priorHref} className="ml-1 not-italic font-medium text-primary hover:underline">
+                <a href={priorHref} className="ml-1 font-medium text-primary not-italic hover:underline">
                   Open prior publication <ArrowRightIcon className="inline size-3" aria-hidden />
                 </a>
               ) : null}
             </p>
           )}
         </div>
-
-        <div className="px-3 py-2">
-          <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            <span className="size-1.5 rounded-full bg-emerald-400" aria-hidden />
-            Updated · as published
+        <div className="px-4 py-3">
+          <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-medium text-muted-foreground">
+            After · as published
+            {showRedline ? (
+              <span className="inline-flex gap-1 font-normal">
+                <span className="rounded-sm bg-rose-100 px-1 text-rose-800 line-through dark:bg-rose-500/15 dark:text-rose-300">removed</span>
+                <span className="rounded-sm bg-emerald-100 px-1 text-emerald-900 dark:bg-emerald-500/15 dark:text-emerald-200">added</span>
+              </span>
+            ) : null}
           </div>
-          <p className="text-xs leading-relaxed whitespace-pre-wrap">
-            {highlightInBody(clause.body, highlightQuote)}
-          </p>
-        </div>
-      </div>
-
-      {hasRedline ? (
-        <div className="border-t border-border bg-muted/30 px-3 py-2">
-          <div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Word-level changes
-            <span className="inline-flex items-center gap-1 font-normal normal-case">
-              <span className="rounded-sm bg-rose-100 px-1 text-rose-800 line-through dark:bg-rose-500/15 dark:text-rose-300">removed</span>
-              <span className="rounded-sm bg-emerald-100 px-1 text-emerald-900 dark:bg-emerald-500/15 dark:text-emerald-200">inserted</span>
-            </span>
-          </div>
-          <RedlineText segments={clause.redline} />
-        </div>
-      ) : null}
-
-      <div className="border-t border-border px-3 py-2">
-        <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">What it means</div>
-        <p className="mt-0.5 text-xs leading-relaxed">
-          {clause.significance ?? (
-            <>
-              {clause.summary || "No summary was produced for this clause."}
-              <span className="ml-1 text-[10px] italic text-muted-foreground">(rule-based summary; significance not yet generated)</span>
-            </>
+          {showRedline ? (
+            <RedlineText segments={clause.redline} />
+          ) : (
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">{highlightInBody(clause.body, highlightQuote)}</p>
           )}
-        </p>
-        {clause.prior_clause_id ? (
-          <p className="mt-1 font-mono text-[10px] text-muted-foreground">prior clause: {clause.prior_clause_id}</p>
-        ) : null}
+        </div>
       </div>
     </div>
   )

@@ -1,156 +1,83 @@
-import { ArrowLeftIcon, ExternalLinkIcon, GitCompareArrowsIcon, Link2OffIcon } from "lucide-react"
+import { ArrowLeftIcon, ChevronRightIcon, ExternalLinkIcon, GitCompareArrowsIcon, Link2OffIcon } from "lucide-react"
 import Link from "next/link"
 
-import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   areaLabel,
   dashboardStateOf,
   DASHBOARD_STATE,
   effectiveLabel,
   isUnresolvedRelationship,
-  reviewStateChip,
+  REGION_LABEL,
   reviewStateLabel,
-  titleCase,
 } from "@/lib/domain"
 import type { SourceDetail } from "@/lib/domain"
-import { formatDate, formatDateTime, plural } from "@/lib/format"
-import type { RegulaState } from "@/lib/types"
+import { formatDate } from "@/lib/format"
+import type { Region, RegulaState } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 import { ClauseDiff } from "./clause-diff"
 import { ObligationCard } from "./obligation-card"
-import { ChangeClassBadge, Chip, EmptyState, RegionBadge, SectionHeading, Tag } from "./primitives"
+import { ChangeClassBadge, Chip, EmptyState, SectionHeading } from "./primitives"
 
-function Stat({ label, value, hint }: { label: string; value: React.ReactNode; hint?: React.ReactNode }) {
+function percent(value: number) {
+  return `${Math.round(value * 100)}%`
+}
+
+/** One callout explaining what this publication was compared against, if anything. */
+function RelationshipCallout({ detail }: { detail: SourceDetail }) {
+  const { row, prior } = detail
+  const { relationship } = row
+  const confidence = typeof relationship.confidence === "number" ? relationship.confidence : null
+
+  if (isUnresolvedRelationship(row.source)) {
+    return (
+      <div className="flex gap-3 rounded-xl border border-fuchsia-200 bg-fuchsia-50/70 p-4 text-sm dark:border-fuchsia-500/30 dark:bg-fuchsia-500/10">
+        <Link2OffIcon className="mt-0.5 size-4 shrink-0 text-fuchsia-700 dark:text-fuchsia-300" aria-hidden />
+        <div className="grid gap-1">
+          <p className="font-medium text-fuchsia-900 dark:text-fuchsia-200">No reliable earlier version found</p>
+          <p className="text-fuchsia-900/80 dark:text-fuchsia-200/80">
+            This needs a manual link before changes can be compared.
+            {confidence !== null ? ` Best match was ${percent(confidence)}` : ""}
+            {relationship.prior_source_id ? ` (${relationship.prior_source_id})` : ""}
+            {confidence !== null ? "." : ""}
+          </p>
+          {relationship.rationale ? (
+            <p className="text-xs text-fuchsia-900/70 dark:text-fuchsia-200/70">{relationship.rationale}</p>
+          ) : null}
+        </div>
+      </div>
+    )
+  }
+
+  const priorLabel = prior ? prior.short_title || prior.title : relationship.prior_ref
+  if (!priorLabel) return null
+
   return (
-    <div className="rounded-md border border-border bg-card px-2.5 py-1.5">
-      <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 text-xs font-medium">{value}</dd>
-      {hint ? <dd className="text-[10px] text-muted-foreground">{hint}</dd> : null}
+    <div className="flex gap-3 rounded-xl border border-border bg-card p-4 text-sm shadow-xs">
+      <GitCompareArrowsIcon className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+      <div className="grid gap-1">
+        <p>
+          Compared with{" "}
+          {prior ? (
+            <Link href={`/publications/${encodeURIComponent(prior.id)}`} className="font-medium text-primary hover:underline">
+              {priorLabel}
+            </Link>
+          ) : (
+            <span className="font-medium">{priorLabel}</span>
+          )}
+          {confidence !== null ? <span className="text-muted-foreground"> · {percent(confidence)} match</span> : null}
+        </p>
+        {relationship.rationale ? <p className="text-xs text-muted-foreground">{relationship.rationale}</p> : null}
+      </div>
     </div>
   )
 }
 
-function RelationshipPanel({ detail }: { detail: SourceDetail }) {
-  const { row, prior } = detail
-  const { relationship } = row
-  const unresolved = isUnresolvedRelationship(row.source)
-  const confidence = typeof relationship.confidence === "number" ? relationship.confidence : null
-  const linkedWithoutSource = Boolean(relationship.prior_ref) && (relationship.status === "linked" || relationship.status === "standalone")
-
-  if (unresolved) {
-    return (
-      <div className="rounded-lg border border-fuchsia-200 bg-fuchsia-50/60 px-3 py-2.5 dark:border-fuchsia-500/30 dark:bg-fuchsia-500/10">
-        <div className="flex items-center gap-1.5 font-heading text-xs font-semibold text-fuchsia-800 dark:text-fuchsia-300">
-          <Link2OffIcon className="size-3.5" aria-hidden />
-          No reliable prior regulation found
-        </div>
-        <p className="mt-1 text-xs leading-relaxed text-fuchsia-900/80 dark:text-fuchsia-200/80">
-          The system could not establish a reliable relationship with earlier regulations, so a side-by-side
-          comparison is not shown. This publication is queued for manual review.
-        </p>
-        <dl className="mt-2 grid gap-1 text-[11px]">
-          <div className="flex gap-2">
-            <dt className="w-20 shrink-0 text-muted-foreground">Status</dt>
-            <dd className="font-medium">{relationship.status}</dd>
-          </div>
-          {confidence !== null ? (
-            <div className="flex gap-2">
-              <dt className="w-20 shrink-0 text-muted-foreground">Best match</dt>
-              <dd className="font-medium">
-                {Math.round(confidence * 100)}% confidence
-                {confidence < 0.45 ? " — below the 45% threshold" : ""}
-              </dd>
-            </div>
-          ) : null}
-          {relationship.prior_source_id ? (
-            <div className="flex gap-2">
-              <dt className="w-20 shrink-0 text-muted-foreground">Candidate</dt>
-              <dd className="font-medium">{relationship.prior_source_id}</dd>
-            </div>
-          ) : null}
-          {relationship.rationale ? (
-            <div className="flex gap-2">
-              <dt className="w-20 shrink-0 text-muted-foreground">Rationale</dt>
-              <dd>{relationship.rationale}</dd>
-            </div>
-          ) : null}
-        </dl>
-      </div>
-    )
-  }
-
-  if (prior) {
-    return (
-      <div className="rounded-lg border border-blue-200 bg-blue-50/60 px-3 py-2.5 dark:border-blue-500/30 dark:bg-blue-500/10">
-        <div className="flex items-center gap-1.5 font-heading text-xs font-semibold text-blue-800 dark:text-blue-300">
-          <GitCompareArrowsIcon className="size-3.5" aria-hidden />
-          Compared against a prior regulation
-        </div>
-        <p className="mt-1 text-xs leading-relaxed text-blue-900/80 dark:text-blue-200/80">
-          {relationship.rationale ?? "A prior regulation was identified for this publication."}
-        </p>
-        <dl className="mt-2 grid gap-1 text-[11px]">
-          <div className="flex gap-2">
-            <dt className="w-20 shrink-0 text-muted-foreground">Status</dt>
-            <dd className="font-medium">{relationship.status}</dd>
-          </div>
-          {confidence !== null ? (
-            <div className="flex gap-2">
-              <dt className="w-20 shrink-0 text-muted-foreground">Confidence</dt>
-              <dd className="font-medium tabular-nums">{Math.round(confidence * 100)}%</dd>
-            </div>
-          ) : null}
-        </dl>
-        <Link
-          href={`/publications/${encodeURIComponent(prior.id)}`}
-          className="mt-2 inline-flex items-center gap-1 rounded-md border border-blue-300/70 bg-card px-2 py-1 text-[11px] font-medium text-blue-800 hover:underline dark:border-blue-500/40 dark:text-blue-300"
-        >
-          Prior: {prior.short_title || prior.title}
-          <ExternalLinkIcon className="size-3" aria-hidden />
-        </Link>
-      </div>
-    )
-  }
-
-  if (linkedWithoutSource) {
-    return (
-      <div className="rounded-lg border border-blue-200 bg-blue-50/60 px-3 py-2.5 dark:border-blue-500/30 dark:bg-blue-500/10">
-        <div className="flex items-center gap-1.5 font-heading text-xs font-semibold text-blue-800 dark:text-blue-300">
-          <GitCompareArrowsIcon className="size-3.5" aria-hidden />
-          Compared against a prior regulation
-        </div>
-        <p className="mt-1 text-xs leading-relaxed text-blue-900/80 dark:text-blue-200/80">
-          {relationship.rationale ?? "A prior regulation was identified for this publication."}
-        </p>
-        <dl className="mt-2 grid gap-1 text-[11px]">
-          <div className="flex gap-2">
-            <dt className="w-20 shrink-0 text-muted-foreground">Prior document</dt>
-            <dd className="font-mono font-medium">{relationship.prior_ref}</dd>
-          </div>
-          {confidence !== null ? (
-            <div className="flex gap-2">
-              <dt className="w-20 shrink-0 text-muted-foreground">Confidence</dt>
-              <dd className="font-medium tabular-nums">{Math.round(confidence * 100)}%</dd>
-            </div>
-          ) : null}
-        </dl>
-        <p className="mt-2 text-[10px] leading-relaxed text-blue-900/70 dark:text-blue-200/70">
-          The prior document is held as source text for the comparison; it is not a separate publication in the
-          repository.
-        </p>
-      </div>
-    )
-  }
-
+function Fact({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-border bg-muted/40 px-3 py-2.5">
-      <div className="font-heading text-xs font-semibold">No prior regulation on file</div>
-      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-        {relationship.rationale ??
-          "This publication was retrieved without an earlier version in the repository, so there is nothing to diff. It is treated as a standalone publication."}
-      </p>
+    <div className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-2 py-2">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="font-medium">{children}</dd>
     </div>
   )
 }
@@ -162,8 +89,7 @@ function RelationshipPanel({ detail }: { detail: SourceDetail }) {
 export function PublicationDetail({ detail, state, highlight }: { detail: SourceDetail; state: RegulaState; highlight?: string }) {
   const { row, prior, citedReferences } = detail
   const { source } = row
-  const dashboardState = dashboardStateOf(source)
-  const aiObligations = row.obligations.filter((obligation) => (obligation.applicability ?? []).includes("ai"))
+  const dashboardState = DASHBOARD_STATE[dashboardStateOf(source)]
   const changedClauses = row.clauses.filter((clause) => clause.change_type !== "unchanged")
   const highlightObligation = highlight ? row.obligations.find((obligation) => obligation.id === highlight) : undefined
   const highlightClauseId = highlightObligation?.clause_id
@@ -171,224 +97,200 @@ export function PublicationDetail({ detail, state, highlight }: { detail: Source
     highlightClauseId && !changedClauses.some((clause) => clause.id === highlightClauseId)
       ? [...row.clauses.filter((clause) => clause.id === highlightClauseId), ...changedClauses]
       : changedClauses
+  const country = row.region === "OTHER" ? "Other" : (REGION_LABEL[row.region as Region] ?? row.region)
+  const days = source.days_left
+
+  const sections = [
+    { id: "changes", label: "What changed", count: visibleClauses.length },
+    { id: "obligations", label: "Obligations", count: row.obligations.length },
+    { id: "related", label: "Related", count: detail.related.length },
+  ]
 
   return (
-    <div className="grid gap-4">
-      <div>
-        <Button
-          variant="ghost"
-          size="sm"
-          render={<Link href="/#repository" />}
-          className="-ml-1.5 mb-2 h-7 text-muted-foreground"
+    <div className="grid gap-8">
+      <div className="grid gap-4">
+        <Link
+          href="/#repository"
+          className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeftIcon aria-hidden />
-          Back to dashboard
-        </Button>
-
-        <div className="flex flex-wrap items-center gap-1.5">
-          <RegionBadge region={row.region} />
-          <Chip
-            chip={{ label: row.authority, short: row.authority, className: "border-border bg-card text-foreground" }}
-          />
-          <Tag className="font-mono">{source.ref}</Tag>
-          <Tag>{row.docType}</Tag>
-          <Chip chip={DASHBOARD_STATE[dashboardState]} />
-          {row.changeClass ? <ChangeClassBadge value={row.changeClass} /> : null}
+          <ArrowLeftIcon className="size-4" aria-hidden />
+          All publications
+        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Chip chip={{ ...dashboardState, label: dashboardState.short }} />
+          {row.changeClass ? <ChangeClassBadge value={row.changeClass} short /> : null}
         </div>
-
-        <h1 className="mt-2 font-heading text-xl font-semibold leading-tight tracking-tight">{source.title}</h1>
-        <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted-foreground">{source.summary}</p>
-
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-          <span>
-            <span className="font-semibold text-foreground">Authority</span> {row.authority}
-            {source.jurisdiction ? ` · ${source.jurisdiction}` : null}
-          </span>
-          <span>
-            <span className="font-semibold text-foreground">Published</span> {formatDate(source.published)}
-          </span>
-          <span>
-            <span className="font-semibold text-foreground">Effective</span>{" "}
-            <span className={cn(!source.effective && "italic")}>{effectiveLabel(source)}</span>
-          </span>
-          {source.first_seen ? (
-            <span>
-              <span className="font-semibold text-foreground">First seen</span> {formatDateTime(source.first_seen)}
-            </span>
+        <div>
+          <h1 className="max-w-4xl font-heading text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
+            {source.title}
+          </h1>
+          {source.summary ? (
+            <p className="mt-3 max-w-3xl text-base leading-relaxed text-muted-foreground">{source.summary}</p>
           ) : null}
-          {source.processed_at ? (
-            <span>
-              <span className="font-semibold text-foreground">Processed</span> {formatDateTime(source.processed_at)}
-            </span>
-          ) : null}
-          <span>
-            <span className="font-semibold text-foreground">Review</span> {reviewStateLabel(source)}
-          </span>
-          {source.url ? (
-            <a href={source.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 font-medium text-primary hover:underline">
-              Source document <ExternalLinkIcon className="size-3" aria-hidden />
+        </div>
+        <nav aria-label="On this page" className="flex flex-wrap gap-2">
+          {sections.map((section) => (
+            <a
+              key={section.id}
+              href={`#${section.id}`}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-sm shadow-xs hover:border-foreground/20"
+            >
+              {section.label}
+              <span className="text-muted-foreground tabular-nums">{section.count}</span>
             </a>
-          ) : null}
-        </div>
+          ))}
+        </nav>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <div className="grid gap-2">
-          <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <Stat label="Obligations" value={row.obligations.length} hint={`${aiObligations.length} AI-tagged`} />
-            <Stat label="Changed clauses" value={row.changedClauses.length} hint={`of ${row.clauses.length} total`} />
-            <Stat
-              label="Business areas"
-              value={row.areas.length ? row.areas.map(areaLabel).join(" · ") : "not extracted"}
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
+        <div className="grid min-w-0 gap-10">
+          <section id="changes" className="grid scroll-mt-20 gap-4">
+            <SectionHeading
+              title="What changed"
+              hint={
+                prior
+                  ? `${visibleClauses.length} of ${row.clauses.length} clauses differ from ${prior.ref}.`
+                  : "No earlier version is linked, so clauses are shown as published."
+              }
             />
-            <Stat label="Deadline" value={typeof source.days_left === "number" ? `${source.days_left} days` : "—"} />
-          </dl>
-          <RelationshipPanel detail={detail} />
+            <RelationshipCallout detail={detail} />
+            {visibleClauses.length === 0 ? (
+              <EmptyState title="No clauses extracted yet" description="The document may still be queued for extraction." />
+            ) : (
+              visibleClauses.map((clause) => (
+                <div key={clause.id} id={clause.id} className="scroll-mt-20">
+                  <ClauseDiff
+                    clause={clause}
+                    priorLabel={prior?.ref}
+                    priorHref={prior ? `/publications/${encodeURIComponent(prior.id)}#${clause.prior_clause_id ?? ""}` : undefined}
+                    highlightQuote={highlightObligation?.clause_id === clause.id ? highlightObligation.quote : undefined}
+                  />
+                </div>
+              ))
+            )}
+          </section>
+
+          <section id="obligations" className="grid scroll-mt-20 gap-4">
+            <SectionHeading
+              title="Obligations"
+              hint="What this publication requires, each with its clause reference and the exact source text."
+            />
+            {row.obligations.length ? (
+              row.obligations.map((obligation, index) => (
+                <ObligationCard
+                  key={obligation.id}
+                  obligation={obligation}
+                  index={index}
+                  anchor={`obl-${obligation.id}`}
+                  sources={state.sources}
+                />
+              ))
+            ) : (
+              <EmptyState
+                title="Awaiting extraction"
+                description="This publication has been ingested but its obligations have not been extracted yet."
+              />
+            )}
+          </section>
+
+          <section id="related" className="grid scroll-mt-20 gap-4">
+            <SectionHeading title="Related publications" hint={`Other publications from ${country}.`} />
+            {detail.related.length ? (
+              <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card shadow-xs">
+                {detail.related.map((related) => {
+                  const relatedState = DASHBOARD_STATE[dashboardStateOf(related)]
+                  return (
+                    <li key={related.id}>
+                      <Link
+                        href={`/publications/${encodeURIComponent(related.id)}`}
+                        className="group flex items-center gap-4 px-4 py-3 hover:bg-muted/40"
+                      >
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-medium group-hover:text-primary">{related.title}</span>
+                          <span className="mt-0.5 block text-xs text-muted-foreground">
+                            {related.authority ?? related.regulator} · {formatDate(related.published)}
+                          </span>
+                        </span>
+                        <Chip chip={{ ...relatedState, label: relatedState.short }} className="hidden sm:inline-flex" />
+                        <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground/50 group-hover:text-foreground" aria-hidden />
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            ) : (
+              <EmptyState title="No other publications from this country" />
+            )}
+          </section>
         </div>
 
-        <div className="grid content-start gap-2 rounded-lg bg-card px-3 py-2.5 ring-1 ring-foreground/10">
-          <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Review state</div>
-            <div className="mt-1 flex flex-wrap items-center gap-1">
-              <Chip chip={reviewStateChip(source)} />
-              <Tag>{titleCase(String(source.status ?? ""))}</Tag>
-            </div>
-            <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-              Human review records an audit event against this publication. This dashboard is read-only; the review
-              action lands with the monitoring workflow.
-            </p>
+        <aside className="grid gap-4 lg:sticky lg:top-20">
+          <div className="rounded-xl border border-border bg-card px-4 py-2 text-sm shadow-xs">
+            <dl className="divide-y divide-border">
+              <Fact label="Regulator">{row.authority}</Fact>
+              <Fact label="Country">{country}</Fact>
+              <Fact label="Reference">
+                <span className="font-mono text-xs break-all">{source.ref}</span>
+              </Fact>
+              <Fact label="Type">{row.docType}</Fact>
+              <Fact label="Published">{formatDate(source.published)}</Fact>
+              <Fact label="Effective">
+                <span className={cn(!source.effective && "font-normal text-muted-foreground italic")}>
+                  {effectiveLabel(source)}
+                </span>
+              </Fact>
+              <Fact label="Deadline">
+                {typeof days === "number" ? (
+                  <span className={cn(days < 0 && "text-destructive", days >= 0 && days < 45 && "text-amber-700 dark:text-amber-300")}>
+                    {days < 0 ? `${Math.abs(days)} days overdue` : `${days} days left`}
+                  </span>
+                ) : (
+                  <span className="font-normal text-muted-foreground">None stated</span>
+                )}
+              </Fact>
+              <Fact label="Business areas">
+                {row.areas.length ? row.areas.map(areaLabel).join(", ") : <span className="font-normal text-muted-foreground">Not extracted</span>}
+              </Fact>
+              <Fact label="Review">{reviewStateLabel(source)}</Fact>
+            </dl>
+            {source.url ? (
+              <a
+                href={source.url}
+                target="_blank"
+                rel="noreferrer"
+                className="my-2 inline-flex items-center gap-1 font-medium text-primary hover:underline"
+              >
+                Open source document <ExternalLinkIcon className="size-3.5" aria-hidden />
+              </a>
+            ) : null}
           </div>
-          <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Source references ({citedReferences.length})
-            </div>
-            {citedReferences.length ? (
-              <ul className="mt-1 grid gap-1">
+
+          {citedReferences.length ? (
+            <div className="rounded-xl border border-border bg-card p-4 text-sm shadow-xs">
+              <h2 className="font-medium">Cited regulations</h2>
+              <ul className="mt-2 grid gap-2">
                 {citedReferences.map((reference) => (
-                  <li key={reference.value} className="flex items-center gap-1 text-[11px]">
-                    <Tag className="font-mono">{reference.value}</Tag>
+                  <li key={reference.value}>
                     {reference.source ? (
                       <Link
                         href={`/publications/${encodeURIComponent(reference.source.id)}`}
-                        className="truncate font-medium text-primary hover:underline"
+                        className="font-medium text-primary hover:underline"
                       >
                         {reference.source.short_title}
                       </Link>
                     ) : (
-                      <span className="text-muted-foreground">not in repository</span>
+                      <span>{reference.value}</span>
                     )}
+                    <span className="block font-mono text-xs text-muted-foreground">
+                      {reference.source ? reference.value : "not in repository"}
+                    </span>
                   </li>
                 ))}
               </ul>
-            ) : (
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                No earlier regulations were cited in the extracted obligations.
-              </p>
-            )}
-          </div>
-          <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Tags</div>
-            <div className="mt-1 flex flex-wrap gap-1">
-              {source.tags.map((tag) => (
-                <Tag key={tag}>{tag}</Tag>
-              ))}
             </div>
-          </div>
-        </div>
+          ) : null}
+        </aside>
       </div>
-
-      <section className="grid gap-2" aria-labelledby="clauses-heading">
-        <SectionHeading
-          title={<span id="clauses-heading">Clause comparison</span>}
-          hint={
-            prior
-              ? `Previous text from ${prior.ref} vs this publication. ${plural(changedClauses.length, "clause")} changed.`
-              : "No prior regulation is linked, so each clause is shown as published without a comparison."
-          }
-        />
-        {changedClauses.length === 0 ? (
-          <EmptyState title="No clauses were extracted for this publication" description="The document may still be queued for extraction." />
-        ) : (
-          <div className="grid gap-2">
-            {visibleClauses.map((clause) => (
-              <div key={clause.id} id={clause.id} className="scroll-mt-20">
-                <ClauseDiff
-                  clause={clause}
-                  priorLabel={prior?.ref}
-                  priorHref={prior ? `/publications/${encodeURIComponent(prior.id)}#${clause.prior_clause_id ?? ""}` : undefined}
-                  highlightQuote={highlightObligation?.clause_id === clause.id ? highlightObligation.quote : undefined}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="grid gap-2" aria-labelledby="obligations-heading">
-        <SectionHeading
-          title={<span id="obligations-heading">Extracted obligations</span>}
-          hint={
-            row.obligations.length
-              ? "Structured requirements with clause reference, verbatim quote, applicability, deadline and confidence."
-              : "No obligations have been extracted for this publication yet."
-          }
-        />
-        {row.obligations.length ? (
-          <div className="grid gap-2">
-            {row.obligations.map((obligation, index) => (
-              <ObligationCard
-                key={obligation.id}
-                obligation={obligation}
-                index={index}
-                anchor={`obl-${obligation.id}`}
-                sources={state.sources}
-              />
-            ))}
-          </div>
-        ) : (
-          <EmptyState
-            title="Awaiting extraction"
-            description="This publication has been ingested but its obligations have not been extracted yet. Run the analysis to populate clause references and applicability."
-          />
-        )}
-      </section>
-
-      <section className="grid gap-2">
-        <SectionHeading title="Related publications" hint={`Other ${row.region === "OTHER" ? "" : row.region} publications in the repository`} />
-        {detail.related.length ? (
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="pl-1">Publication</TableHead>
-                <TableHead>Regulator</TableHead>
-                <TableHead>Published</TableHead>
-                <TableHead>Classification</TableHead>
-                <TableHead className="pr-1">State</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {detail.related.map((related) => (
-                <TableRow key={related.id}>
-                  <TableCell className="whitespace-normal pl-1">
-                    <Link href={`/publications/${encodeURIComponent(related.id)}`} className="font-medium hover:text-primary hover:underline">
-                      {related.title}
-                    </Link>
-                    <div className="font-mono text-[10px] text-muted-foreground">{related.ref}</div>
-                  </TableCell>
-                  <TableCell>{related.authority ?? related.regulator}</TableCell>
-                  <TableCell className="tabular-nums">{formatDate(related.published)}</TableCell>
-                  <TableCell>{related.change_class ? <ChangeClassBadge value={related.change_class} /> : <span className="text-[10px] italic text-muted-foreground">—</span>}</TableCell>
-                  <TableCell className="pr-1">
-                    <Chip chip={DASHBOARD_STATE[dashboardStateOf(related)]} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        ) : (
-          <EmptyState title="No other publications in this region" />
-        )}
-      </section>
     </div>
   )
 }

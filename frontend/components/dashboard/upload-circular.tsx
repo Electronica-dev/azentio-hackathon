@@ -60,7 +60,7 @@ function StatusBadge({ relationship }: { relationship: RelationshipOutcome | nul
   const status = relationship?.status ?? "standalone"
   const copy = STATUS_COPY[status] ?? STATUS_COPY.standalone
   return (
-    <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold", copy.tone)}>
+    <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold", copy.tone)}>
       {status === "linked" ? <CheckIcon className="size-3" aria-hidden /> : null}
       {copy.label}
     </span>
@@ -88,22 +88,22 @@ function ResultPanel({
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge relationship={relationship} />
           {relationship?.confidence ? (
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               confidence <b className="font-semibold text-foreground">{percent(relationship.confidence)}</b>
             </span>
           ) : null}
           {result.quality && result.quality !== "text" ? (
-            <span className="rounded-full border border-border bg-card px-2 py-0.5 text-[10px] text-muted-foreground">
+            <span className="rounded-full border border-border bg-card px-2 py-0.5 text-xs text-muted-foreground">
               {result.quality}
             </span>
           ) : null}
         </div>
-        <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{copy.hint}</p>
+        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{copy.hint}</p>
         {relationship?.rationale ? (
-          <p className="mt-1 text-[11px] leading-relaxed text-foreground">{relationship.rationale}</p>
+          <p className="mt-1 text-sm leading-relaxed text-foreground">{relationship.rationale}</p>
         ) : null}
         {relationship?.prior_title || relationship?.prior_source_id ? (
-          <p className="mt-1 text-[11px] text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground">
             Compared against{" "}
             <b className="font-semibold text-foreground">{relationship.prior_title ?? relationship.prior_source_id}</b>
           </p>
@@ -119,7 +119,7 @@ function ResultPanel({
             ["tasks", stats.tasks],
           ].map(([label, value]) => (
             <div key={String(label)} className="rounded-md border border-border bg-card px-2 py-1.5">
-              <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</dt>
+              <dt className="text-xs uppercase tracking-wide text-muted-foreground">{label}</dt>
               <dd className="font-heading text-lg font-semibold tabular-nums">{value ?? 0}</dd>
             </div>
           ))}
@@ -128,9 +128,9 @@ function ResultPanel({
 
       {status === "proposed" ? (
         <div className="grid gap-2">
-          <p className="text-[11px] font-semibold">Did this document amend one of these?</p>
+          <p className="text-sm font-semibold">Did this document amend one of these?</p>
           {alternatives.length === 0 ? (
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               No candidate cleared the gates. It will stay standalone until someone links it manually.
             </p>
           ) : (
@@ -141,11 +141,11 @@ function ResultPanel({
                   className="rounded-md border border-border bg-card px-2.5 py-2"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-[11px] font-medium">{candidate.title}</span>
-                    <span className="text-[10px] tabular-nums text-muted-foreground">{percent(candidate.confidence)}</span>
+                    <span className="text-sm font-medium">{candidate.title}</span>
+                    <span className="text-xs tabular-nums text-muted-foreground">{percent(candidate.confidence)}</span>
                   </div>
                   {candidate.rationale ? (
-                    <p className="mt-0.5 text-[10px] leading-relaxed text-muted-foreground">{candidate.rationale}</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{candidate.rationale}</p>
                   ) : null}
                   <Button
                     type="button"
@@ -162,7 +162,7 @@ function ResultPanel({
             </ul>
           )}
           {relationship?.model_opinion ? (
-            <p className="rounded-md border border-dashed border-border px-2.5 py-2 text-[10px] leading-relaxed text-muted-foreground">
+            <p className="rounded-md border border-dashed border-border px-2.5 py-2 text-xs leading-relaxed text-muted-foreground">
               <b className="font-semibold text-foreground">Model opinion.</b>{" "}
               {relationship.model_opinion.prior_document_id
                 ? `Suggests ${relationship.model_opinion.prior_document_id} (${percent(relationship.model_opinion.confidence)}). `
@@ -177,7 +177,7 @@ function ResultPanel({
       ) : null}
 
       {result.backfilled?.length ? (
-        <p className="rounded-md border border-border bg-muted/40 px-2.5 py-2 text-[11px] text-muted-foreground">
+        <p className="rounded-md border border-border bg-muted/40 px-2.5 py-2 text-sm text-muted-foreground">
           <b className="font-semibold text-foreground">Backfilled {result.backfilled.length}.</b> This upload is older
           than {result.backfilled.map((edge) => edge.title).join(", ")}, so that comparison was re-pointed at it.
         </p>
@@ -273,9 +273,9 @@ export function UploadCircular() {
 
   return (
     <>
-      <Button type="button" variant="outline" size="sm" onClick={() => setOpen(true)}>
+      <Button type="button" variant="outline" onClick={() => setOpen(true)}>
         <UploadIcon aria-hidden />
-        Upload circular
+        Upload
       </Button>
 
       {open ? (
@@ -288,7 +288,7 @@ export function UploadCircular() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="upload-title"
-            className="w-full max-w-2xl rounded-lg bg-card p-4 shadow-2xl ring-1 ring-foreground/15"
+            className="w-full max-w-2xl rounded-2xl bg-card p-6 shadow-2xl ring-1 ring-foreground/15"
             onMouseDown={(event) => event.stopPropagation()}
           >
             <header className="mb-3 flex items-start justify-between gap-2">
@@ -296,7 +296,7 @@ export function UploadCircular() {
                 <h2 id="upload-title" className="font-heading text-base font-semibold">
                   Upload a regulatory document
                 </h2>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                <p className="mt-0.5 text-sm text-muted-foreground">
                   TXT, DOCX, HTML or PDF. The file is stored, related to what we already hold, then diffed.
                 </p>
               </div>
@@ -310,7 +310,7 @@ export function UploadCircular() {
             ) : (
               <div className="grid gap-3">
                 <label className="grid gap-1">
-                  <span className="text-[11px] font-medium">Document</span>
+                  <span className="text-sm font-medium">Document</span>
                   <input
                     ref={inputRef}
                     type="file"
@@ -320,17 +320,17 @@ export function UploadCircular() {
                       setFile(event.target.files?.[0] ?? null)
                       setError(null)
                     }}
-                    className="block w-full cursor-pointer rounded-md border border-border bg-card px-2 py-1.5 text-xs file:mr-2 file:rounded file:border-0 file:bg-muted file:px-2 file:py-1 file:text-[10px] file:font-medium"
+                    className="block w-full cursor-pointer rounded-md border border-border bg-card px-2 py-1.5 text-xs file:mr-2 file:rounded file:border-0 file:bg-muted file:px-2 file:py-1 file:text-xs file:font-medium"
                   />
                   {file ? (
-                    <span className="text-[10px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {file.name} · {(file.size / 1024).toFixed(0)} KB
                     </span>
                   ) : null}
                 </label>
 
                 <label className="grid gap-1">
-                  <span className="text-[11px] font-medium">Regulator</span>
+                  <span className="text-sm font-medium">Regulator</span>
                   <select
                     value={authority}
                     onChange={(event) => setAuthority(event.target.value)}
@@ -346,7 +346,7 @@ export function UploadCircular() {
                   </select>
                 </label>
 
-                <p className="rounded-md border border-dashed border-border px-2.5 py-2 text-[10px] leading-relaxed text-muted-foreground">
+                <p className="rounded-md border border-dashed border-border px-2.5 py-2 text-xs leading-relaxed text-muted-foreground">
                   <b className="font-semibold text-foreground">What happens next.</b> The engine gates on authority,
                   date order, language and duplicates, identifies the instrument, walks the version chain, looks for
                   decisive evidence, then scores the survivors. A confident match diffs immediately; an inconclusive
@@ -354,7 +354,7 @@ export function UploadCircular() {
                 </p>
 
                 {error ? (
-                  <p className="rounded-md border border-destructive/30 bg-destructive/10 px-2.5 py-2 text-[11px] text-destructive">
+                  <p className="rounded-md border border-destructive/30 bg-destructive/10 px-2.5 py-2 text-sm text-destructive">
                     {error}
                   </p>
                 ) : null}

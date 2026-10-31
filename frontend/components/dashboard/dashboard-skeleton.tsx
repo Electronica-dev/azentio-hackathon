@@ -1,28 +1,27 @@
-/** Static-shell fallback shown while `/api/state` resolves. */
+import { AppHeader } from "./app-header"
+
+/** Static-shell fallback shown while `/api/state` resolves. Mirrors the dashboard layout. */
 export function DashboardSkeleton() {
   return (
-    <div className="mx-auto grid w-full max-w-[1400px] gap-4 px-4 py-4" aria-busy="true" aria-live="polite">
-      <div className="grid gap-2">
-        <div className="h-3 w-56 animate-pulse rounded bg-muted" />
-        <div className="h-7 w-96 max-w-full animate-pulse rounded bg-muted" />
-        <div className="h-3 w-[28rem] max-w-full animate-pulse rounded bg-muted" />
-      </div>
-      <div className="h-9 animate-pulse rounded-lg bg-muted/60" />
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="h-16 animate-pulse rounded-lg bg-muted/60" />
-        ))}
-      </div>
-      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="h-16 animate-pulse rounded-lg bg-muted/60" />
-        ))}
-      </div>
-      <div className="grid gap-2">
-        <div className="h-6 w-72 animate-pulse rounded bg-muted/60" />
-        <div className="h-80 animate-pulse rounded-lg bg-muted/40" />
-      </div>
-      <p className="text-xs text-muted-foreground">Loading regulatory state…</p>
-    </div>
+    <>
+      <AppHeader />
+      <main className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-8 sm:px-6" aria-busy="true" aria-live="polite">
+        <div className="flex items-end justify-between gap-4">
+          <div className="grid gap-2">
+            <div className="h-8 w-64 animate-pulse rounded-lg bg-muted" />
+            <div className="h-4 w-80 max-w-full animate-pulse rounded bg-muted" />
+          </div>
+          <div className="h-9 w-56 animate-pulse rounded-lg bg-muted" />
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className="h-24 animate-pulse rounded-xl bg-muted" />
+          ))}
+        </div>
+        <div className="h-9 animate-pulse rounded-lg bg-muted" />
+        <div className="h-96 animate-pulse rounded-xl bg-muted/70" />
+        <span className="sr-only">Loading publications…</span>
+      </main>
+    </>
   )
 }

@@ -29,8 +29,8 @@ export function RunDiscovery() {
 
   return (
     <span className="inline-flex items-center gap-2">
-      {note ? <span className="text-[10px] text-muted-foreground">{note}</span> : null}
-      <Button type="button" size="sm" disabled={pending} onClick={run}>
+      {note ? <span className="text-xs text-muted-foreground">{note}</span> : null}
+      <Button type="button" disabled={pending} onClick={run}>
         <RadioTowerIcon aria-hidden />
         {pending ? "Running…" : "Run monitoring"}
       </Button>
