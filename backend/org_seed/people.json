@@ -1,0 +1,14 @@
+[
+  { "name": "Priya Menon", "email": "priya.menon@meridian.example", "department": "Compliance", "designation": "Chief Compliance Officer" },
+  { "name": "Asha Rao", "email": "asha.rao@meridian.example", "department": "Compliance", "designation": "Regulatory Change Manager" },
+  { "name": "Ananya Gupta", "email": "ananya.gupta@meridian.example", "department": "Compliance", "designation": "KYC Manager" },
+  { "name": "Meera Joshi", "email": "meera.joshi@meridian.example", "department": "Legal", "designation": "Head of Legal" },
+  { "name": "Arjun Rao", "email": "arjun.rao@meridian.example", "department": "Risk", "designation": "Chief Risk Officer" },
+  { "name": "Ravi Iyer", "email": "ravi.iyer@meridian.example", "department": "Technology", "designation": "Head of Technology Risk" },
+  { "name": "Neha Verma", "email": "neha.verma@meridian.example", "department": "Risk", "designation": "Model Risk Manager" },
+  { "name": "Sneha Kulkarni", "email": "sneha.kulkarni@meridian.example", "department": "Finance", "designation": "Head of Regulatory Reporting" },
+  { "name": "Rohan Iyer", "email": "rohan.iyer@meridian.example", "department": "Business", "designation": "Head of Digital Lending" },
+  { "name": "Kabir Shah", "email": "kabir.shah@meridian.example", "department": "Operations", "designation": "Head of Operations" },
+  { "name": "Vikram Nair", "email": "vikram.nair@meridian.example", "department": "Technology", "designation": "Head of Technology" },
+  { "name": "Dev Patel", "email": "dev.patel@meridian.example", "department": "Technology", "designation": "Integrations Manager" }
+]

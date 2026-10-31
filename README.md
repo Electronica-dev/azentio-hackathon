@@ -266,8 +266,8 @@ An assessment is only as good as its two inputs: extracted obligations and an in
    ```bat
    python backend\seed_org.py --force
    ```
-   It seeds 12 internal documents and a 10-person org chart from
-   `backend/data/org_demo/corpus.json`, runs the KYC assessment, and matches owners from the
+   It seeds 19 internal documents (7 docx + 12 text) and a 12-person org chart from
+   `backend/org_seed/` and `backend/data/org_demo/`, runs the KYC assessment, and matches owners from the
    register.
 4. **Run the assessment** at **http://localhost:3000/assessments** → *Run assessment*. Or:
    ```bat
@@ -433,7 +433,7 @@ restart, after which `.env` applies again.
 
 The RBI documents are real and publicly available; the text is extracted from the official
 notification pages. The 2025 Directions explicitly repeal the 2022 Guidelines. The internal corpus
-and org chart under `backend/data/org_demo/` are synthetic demo data for exercising Level 2 — not a
+and org chart under `backend/org_seed/` and `backend/data/org_demo/` are synthetic demo data for exercising Level 2 — not a
 bank's real policies or personnel. The control library is a curated model of a mid-size Indian bank's
 KYC and lending stack, not an import from a GRC system. The optional LLM is used for alignment,
 classification, significance and draft wording; every obligation still carries a verbatim quote and

@@ -1,14 +1,14 @@
-"""Seed a demo internal corpus and org chart, then run a Level 2 assessment.
+"""Seed the internal document pack and org chart, then run a Level 2 assessment.
 
     python backend/seed_org.py            # seed once, assess KYC
-    python backend/seed_org.py --force    # replace the demo documents
+    python backend/seed_org.py --force    # replace the seeded documents
     python backend/seed_org.py --all      # analyse every regulatory source
 
-The corpus lives in ``backend/data/org_demo/corpus.json`` (committed); the
-generated documents, people and assessment live under ``backend/data/org/`` and
-``backend/data/level2.json`` (gitignored, like the database). Owners are matched
-from the people directory, so the matrix shows real assignments instead of
-flags.
+Documents come from the docx pack in ``backend/org_seed/`` (committed), with the
+people directory in ``org_seed/people.json``. The generated documents, people and
+assessment live under ``backend/data/org/`` and ``backend/data/level2.json``
+(gitignored, like the database). Owners are matched from the people directory, so
+the matrix shows real assignments instead of flags.
 """
 from __future__ import annotations
 
@@ -23,21 +23,24 @@ sys.path.insert(0, str(ROOT))
 
 from regula import assignment, chunks, level2, org, pipeline, store  # noqa: E402
 
+SEED = ROOT / "org_seed"
+MANIFEST = SEED / "documents.json"
+PEOPLE = SEED / "people.json"
 CORPUS = ROOT / "data" / "org_demo" / "corpus.json"
 
 
-def document_text(doc: dict) -> str:
+def _corpus_text(document: dict) -> str:
     return "\n\n".join(
         f'{section["ref"]} {section["heading"]}\n{section["text"]}'
-        for section in doc["sections"]
+        for section in document["sections"]
     )
 
 
-def seed_documents(corpus: dict, force: bool) -> int:
+def seed_documents(documents: list[dict], force: bool) -> None:
     existing = org.snapshot()["documents"]
     if existing and not force:
         print(f"internal documents already present ({len(existing)}); keeping them")
-        return 0
+        return
     if force:
         for doc in existing:
             org.delete_document(doc["id"])
@@ -45,27 +48,49 @@ def seed_documents(corpus: dict, force: bool) -> int:
             level2.DB.unlink()
         print(f"removed {len(existing)} existing internal documents and prior assessments")
 
-    for doc in corpus["documents"]:
-        text = document_text(doc)
+    for document in documents:
+        path = SEED / "files" / document["file"]
+        if not path.exists():
+            print(f"missing seed file: {path}")
+            continue
+        raw = path.read_bytes()
         org.add_documents({
-            "title": doc["title"],
-            "category": doc["category"],
-            "department": doc["department"],
-            "owner": doc["owner"],
-            "version": doc["version"],
+            "title": document["title"],
+            "category": document["category"],
+            "department": document["department"],
+            "owner": document.get("owner", ""),
+            "version": document.get("version", ""),
+            "review_date": document.get("review_date", ""),
             "files": [{
-                "filename": doc["filename"],
-                "content_base64": base64.b64encode(text.encode("utf-8")).decode(),
+                "filename": document["filename"],
+                "content_base64": base64.b64encode(raw).decode(),
             }],
         }, actor="Demo seed")
-    print(f"seeded {len(corpus['documents'])} internal documents")
-    return len(corpus["documents"])
+
+    corpus_added = 0
+    if CORPUS.exists():
+        corpus = json.loads(CORPUS.read_text(encoding="utf-8"))
+        for document in corpus["documents"]:
+            org.add_documents({
+                "title": document["title"],
+                "category": document["category"],
+                "department": document["department"],
+                "owner": document.get("owner", ""),
+                "version": document.get("version", ""),
+                "files": [{
+                    "filename": document["filename"],
+                    "content_base64": base64.b64encode(_corpus_text(document).encode("utf-8")).decode(),
+                }],
+            }, actor="Demo seed")
+            corpus_added += 1
+
+    print(f"seeded {len(documents)} docx + {corpus_added} text documents")
 
 
-def seed_people(corpus: dict) -> int:
+def seed_people(people: list[dict]) -> int:
     existing = org.snapshot()["people"]
     emails = {p["email"].lower() for p in existing if p.get("email")}
-    missing = [p for p in corpus["people"] if p["email"].lower() not in emails]
+    missing = [p for p in people if p["email"].lower() not in emails]
     if missing:
         org.add_people({"items": missing})
     print(f"people directory: {len(existing) + len(missing)} ({len(missing)} added)")
@@ -77,8 +102,7 @@ def ensure_obligations(state: dict, all_sources: bool) -> None:
         s for s in state["sources"] if s["id"] == "src-kyc-2026"
     ]
     for source in sources:
-        has = any(o["source_id"] == source["id"] for o in state["obligations"])
-        if has:
+        if any(o["source_id"] == source["id"] for o in state["obligations"]):
             continue
         try:
             pipeline.run_source(state, source, {}, {}, actor="Demo seed")
@@ -89,17 +113,18 @@ def ensure_obligations(state: dict, all_sources: bool) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--force", action="store_true", help="replace existing demo documents")
+    parser.add_argument("--force", action="store_true", help="replace existing seeded documents")
     parser.add_argument("--all", action="store_true", help="analyse every regulatory source")
     args = parser.parse_args()
 
-    if not CORPUS.exists():
-        print(f"corpus not found: {CORPUS}")
+    if not MANIFEST.exists():
+        print(f"seed manifest not found: {MANIFEST}")
         return 1
-    corpus = json.loads(CORPUS.read_text(encoding="utf-8"))
+    documents = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    people = json.loads(PEOPLE.read_text(encoding="utf-8")) if PEOPLE.exists() else []
 
-    seed_documents(corpus, force=args.force)
-    seed_people(corpus)
+    seed_documents(documents, force=args.force)
+    seed_people(people)
 
     state = store.build_state()
     ensure_obligations(state, all_sources=args.all)
@@ -115,7 +140,6 @@ def main() -> int:
     store.save(state)
 
     analysis = level2.get_analysis(analysis["id"])
-    gaps = analysis["counts"]["gaps"]
     assigned = sum(
         1 for rec in analysis["recommendations"]
         if rec["assignment"]["status"] in ("assigned", "confirmed")
@@ -123,7 +147,7 @@ def main() -> int:
     print()
     print(f"analysis {analysis['id']} · {analysis['counts']['obligations']} obligations "
           f"· {analysis['counts']['mappings']} mappings")
-    print(f"gaps: {gaps}")
+    print(f"gaps: {analysis['counts']['gaps']}")
     print(f"drafts: {analysis['counts']['recommendations']} · owners assigned: {assigned} "
           f"(register: {owners['assigned']} matched, {owners['flagged']} flagged)")
     print("open http://localhost:3000/assessments and http://localhost:3000/impact")
