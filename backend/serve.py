@@ -13,8 +13,7 @@ from urllib.parse import urlparse, unquote
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
-from backend.regula import schedule
-from regula import audit, changes, extract_api, pipeline, relate, rss, store, upload  # noqa: E402
+from regula import audit, changes, extract_api, pipeline, relate, rss, schedule, store, upload  # noqa: E402
 
 WEB = ROOT.parent / "web"
 LOCK = threading.Lock()
