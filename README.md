@@ -1,8 +1,12 @@
-# Regula
+<h1 align="center">Regula</h1>
 
-**Regulatory Change Impact Agent** — tracks regulatory publications, detects what changed
+<p align="center">
+  <img src="static/Regula-Logo.png" alt="Regula logo" width="160">
+</p>
+
+**Regulatory Change Impact Agent** - tracks regulatory publications, detects what changed
 against the earlier version, extracts the affected obligations and shows the impact on a
-bank's policies, processes, systems and controls — with human review and a hash-chained audit
+bank's policies, processes, systems and controls - with human review and a hash-chained audit
 trail.
 
 Built for the Azentio.ai Build Labs hackathon, Challenge 02.
@@ -54,8 +58,8 @@ flowchart LR
 ```
 
 The interesting part is the first step inside that block: deciding **which** earlier document to
-compare against. Getting this wrong is worse than declining — a false link turns every clause
-into a change and fabricates a whole impact assessment — so the engine is allowed to abstain.
+compare against. Getting this wrong is worse than declining - a false link turns every clause
+into a change and fabricates a whole impact assessment - so the engine is allowed to abstain.
 
 ### How the engine selects a document and scores the relationship
 
@@ -96,7 +100,7 @@ A few properties worth calling out:
   the consolidated instrument it amends, so a global cosine buries the signal. Each new clause
   is matched against its best counterpart in the candidate.
 - **The version chain outranks global similarity.** The predecessor is the nearest earlier
-  version of the same instrument, ordered by publication date — or by the fiscal year encoded in
+  version of the same instrument, ordered by publication date - or by the fiscal year encoded in
   the reference when no date is stated.
 - **Backfill is a first-class path.** Uploading an older circular re-points the successor's edge
   and re-diffs it, so history arriving late does not leave a stale comparison behind.
@@ -115,26 +119,26 @@ A few properties worth calling out:
 
 ### How a change is detected
 
-1. **New vs already processed** — the extracted text is hashed (SHA-256); an unchanged hash
+1. **New vs already processed** - the extracted text is hashed (SHA-256); an unchanged hash
    means the document is skipped. Each fetch records the document, its hash and timestamps.
-2. **Which prior document** — `regula/relate.py` gates on authority, date order, language and
+2. **Which prior document** - `regula/relate.py` gates on authority, date order, language and
    duplicate hash, then scores the survivors on instrument identity, cited references,
    supersession language, clause-level similarity, parameter overlap and chain adjacency.
    Decisive evidence links automatically; anything in the grey band comes back as *proposed*
    with its top three candidates and a rationale, and waits for a human instead of guessing.
-3. **Which clause changed** — the new document is parsed into numbered clauses and diffed
+3. **Which clause changed** - the new document is parsed into numbered clauses and diffed
    against the prior document at word level: added, modified, removed.
-4. **What kind of change** — an AI pass maps each clause to its prior counterpart and assigns
+4. **What kind of change** - an AI pass maps each clause to its prior counterpart and assigns
    one of the seven change classes plus a one-sentence significance. Deterministic rules still
    produce a class if the model is unavailable.
-5. **Who decides** — every acceptance or rejection is a human action recorded in the audit
+5. **Who decides** - every acceptance or rejection is a human action recorded in the audit
    chain.
 
 ### Persistence
 
 There is one database: `backend/data/db.json`, written by `regula/store.py` on every mutation. An
-upload is persisted in full — the source record, its clauses, obligations, impacts, tasks, the
-relationship decision, any backfill it caused and the audit events — not just held in memory. An
+upload is persisted in full - the source record, its clauses, obligations, impacts, tasks, the
+relationship decision, any backfill it caused and the audit events - not just held in memory. An
 `uploads` ledger keeps the extracted body beside its SHA-256, byte size, uploader and timestamp, so
 a lost `data/uploads` file is rebuilt from the database on the next load. Uploads pin the database:
 once one exists, a seed rebuild will not run over it.
@@ -150,14 +154,14 @@ once one exists, a seed rebuild will not run over it.
 | South Africa | SARB | https://www.resbank.co.za/ | RSS: https://www.resbank.co.za/bin/sarb/solr/publications/rss |
 
 The Indian and South African regulators publish RSS feeds, which `POST /api/discover`
-consumes. SAMA and CBUAE publish through HTML rulebooks instead — the discovery step parses
+consumes. SAMA and CBUAE publish through HTML rulebooks instead - the discovery step parses
 their listing pages and falls back to a seeded publication when the site is unavailable, so
 the repository always carries the configured jurisdictions.
 
 The committed demo documents are the RBI **Digital Lending** pair:
 
-- 2022 Guidelines — https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=12382&Mode=0
-- 2025 Directions — https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=12848&Mode=0
+- 2022 Guidelines - https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=12382&Mode=0
+- 2025 Directions - https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=12848&Mode=0
 
 `backend/scrape.py` reproduces both text files from those pages; `backend/data/scrape-manifest.json`
 records the source URL and content hash.
@@ -268,7 +272,7 @@ library is a curated model of a mid-size Indian bank's KYC and lending stack, no
 from a GRC system. The optional LLM is used for alignment, classification and significance;
 every obligation still carries a verbatim quote and clause reference.
 
-Known limits: PDF text extraction is best-effort — a scanned PDF is accepted and flagged
+Known limits: PDF text extraction is best-effort - a scanned PDF is accepted and flagged
 `needs_ocr` rather than guessed at; SEBI monitoring is configured but not yet fetched live; the
 relationship weights are hand-tuned for the demo and exposed as constants in `relate.py`; and
 approval is a demo identity rather than SSO.
