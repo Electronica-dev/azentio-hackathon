@@ -212,7 +212,8 @@ Rules:
     "owner_id": null,
     "due_date": null,
     "implementation_status": null,       // not_started | in_progress | blocked | done
-    "source": "classification"           // classification | ownership_register | reviewer | none
+    "source": "classification",          // classification | ownership_register | reviewer | none
+    "priority_override": null            // C-owned; never changes recommendation.priority
   }
 }
 ```
@@ -256,7 +257,7 @@ Rules:
     "status": "draft"
   },
   "mapping": { "id": "map-…", "relation": "partially_addresses", "confidence": 0.86 },
-  "assignment": { "status": "unassigned", "suggested_department": "Risk", "owner_id": null }
+  "assignment": { "status": "unassigned", "suggested_department": "Risk", "owner_id": null, "priority_override": null }
 }
 ```
 
@@ -353,6 +354,8 @@ Response `201`:
 
 The run is synchronous. If it is later moved behind a queue, keep the shape and return `202` with `status: "running"` plus the same `GET /analyses/{id}` polling — clients must already tolerate `running`/`partial`.
 
+**This explicit call is the only trigger.** A document reaching `status: "indexed"` does not start an analysis, and approving an internal document does not either. A reviewer decides when to spend the run, and sees what changed before drafts appear.
+
 `partial` means some documents were excluded or the model was unavailable; the rule-based result is still returned.
 
 ### POST /api/level2/recommendations/{id}/review
@@ -420,6 +423,7 @@ B returns `assignment` with:
 C may:
 - confirm or change `owner_id`, `due_date`, `implementation_status`;
 - set `status` to `assigned` or `confirmed`;
+- set `priority_override` when delivery priority differs from the assessed regulatory priority. The matrix renders `assignment.priority_override ?? recommendation.priority.level`; `recommendation.priority` itself is never rewritten by C;
 - leave it `unassigned` when the register has no match, with `source: "none"`.
 
 B never reads back `assignment` for gap logic. A change in ownership must not change a gap state or a recommendation's content.
@@ -486,9 +490,6 @@ Each carries `analysis_id`, `recommendation_id` where relevant, `actor`, and a o
 1. **Internal corpus** — `state["internal_documents"]` + `state["internal_chunks"]`; A owns writes and the two `GET` endpoints. B reads the same state in-process.
 2. **Assignment location** — nested `assignment` on the recommendation; no separate action resource, `recommendation.id` is the anchor.
 3. **Department** — closed enum of eight values, with `department_raw` preserved for provenance and register lookup.
-
-## 14. Remaining questions (defaults proposed)
-
-1. **Priority ownership.** Default: B computes `priority` with a mandatory rationale; C may override at assignment time without changing the recommendation's content. Confirm if C would rather own the scale.
-2. **Review identity.** Default: `role` in the review body, matching the existing `actor` convention. An `X-Role` header also works but splits the identity across two places.
-3. **Analysis trigger.** Default: explicit `POST /analyses`, so a reviewer sees what changed before drafts appear. Automatic-on-classification can be added later without changing any resource shape.
+4. **Priority ownership** — B assesses `recommendation.priority` with a mandatory rationale. C may set `assignment.priority_override`; the matrix renders the override when present, and B's assessment is never rewritten by C.
+5. **Review identity** — `role` travels in the review request body, next to `actor`, matching the existing convention. No header-based identity.
+6. **Analysis trigger** — explicit `POST /api/level2/analyses` only. Classification and indexing never start an analysis implicitly.
