@@ -1,5 +1,5 @@
 # runtime
-app/data/db.json
+backend/data/db.json
 __pycache__/
 *.pyc
 .pytest_cache/
@@ -25,4 +25,3 @@ deck/~$*
 # harness / editor integration (local only)
 .dsh-integration/
 .zed/
-backend/data/db.json

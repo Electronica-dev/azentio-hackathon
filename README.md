@@ -40,8 +40,7 @@ REGULA_LLM_API_KEY=...
 
 Without a key the pipeline still runs; enrichment fields simply stay empty.
 
-`app/` and `web/` are the original zero-build prototype, kept for reference. `backend/` +
-`frontend/` are the canonical application.
+The canonical app is `backend/` (API + engine) and `frontend/` (Next.js dashboard).
 
 ---
 
@@ -59,57 +58,55 @@ circular → clauses + redline → obligations → asset graph → scored impact
 - **Change plan.** One owned task per impacted asset, priority, due date derived from the effective date, dependency on the policy change.
 - **Evidence chain.** SHA-256 hash chain over every extraction, approval and status change. Exportable assessment pack.
 
-No LLM is called. The run is deterministic and reproducible. `app/regula/llm.py` is an optional adapter stub for teams that want to add one.
+No LLM is required for the deterministic pipeline. When `REGULA_LLM_*` is configured, a
+direct OpenAI-compatible call aligns each new clause with its prior counterpart, classifies
+the change, and writes a plain-English significance sentence; failures fall back to the
+deterministic output.
 
 ---
 
 ## The demo path
 
-1. **Inbox** — 3 sources, 2 regulators, 31 days to the KYC deadline.
-2. Open **KYC Amendment 2026**.
-3. Click **Section 16** — see the 24-month cycle struck through and 12 months inserted.
-4. Click the **Section 17** obligation — the CIF system is hard-coded at 25% beneficial ownership; the amendment requires 10%.
-5. **Approve** an impact — the audit chain gets a new hash.
-6. Open the **change plan** — 25 tasks, 297 effort-days, owners and due dates.
-7. Open the **impact graph** — clause → obligation → asset → task.
-8. **Verify chain** and export the assessment pack.
-9. Go back to the inbox and **Run agent** on the unanalysed SEBI or Digital Lending circular.
+1. **Dashboard** — publications across regions, filters by authority / change class / state, and a
+   "Run monitoring" strip.
+2. Open **RBI (Digital Lending) Directions, 2025** (live document, fetched from rbi.org.in).
+3. **Clause comparison** — previous 2022 guideline text next to the 2025 text, word-level
+   highlights and the AI significance sentence.
+4. Click an obligation's clause reference — the exact quote is marked in the source text.
+5. **Review state** and the hash-chained audit trail record every human decision.
 
 ---
 
 ## Architecture
 
 ```
-app/
-  serve.py              stdlib ThreadingHTTPServer, static + JSON API
+backend/
+  serve.py              stdlib ThreadingHTTPServer, JSON API
   regula/
-    ingest.py           sequential clause parser, prior-version alignment, redline
-    extract.py          obligation extraction, tags, deadlines, params
-    match.py            TF-IDF + curated priors over the asset inventory
-    assess.py           score, severity, delta detection, rationale, effort
+    ingest.py           clause parser, prior alignment, redline
+    extract.py          obligation extraction with quotes and params
+    enrich.py           AI alignment, change class, significance
+    changes.py          change taxonomy across the corpus
+    discover.py         source monitoring (feeds + offline mirrors)
+    extract_api.py      manual upload / text extraction
+    match.py            TF-IDF over the asset inventory
+    assess.py           score, severity, delta, effort
     planner.py          owned tasks, dependencies, due dates
     pipeline.py         run orchestration with per-step timings
     audit.py            SHA-256 prev-hash chain
     store.py            state assembly, persistence, report export
-    llm.py              optional adapter (disabled)
-  data/
-    rbi_kyc_2026.txt    amendment
-    rbi_kyc_2024.txt    prior version (redline)
-    rbi_digital_lending_2026.txt
-    sebi_cyber_2026.txt
-    inventory.json      41 policies, processes, systems and controls
-    sources.json
-web/
-  index.html
-  css/tokens.css        palette + type scale
-  css/app.css           layout + components
-  js/app.js             router, agent-run modal, chrome
-  js/views/             inbox · source · graph · plan · audit
-  mock/state.json       generated fixture
+  data/                 circulars, prior versions, inventory, regulators
+frontend/
+  app/                  Next.js routes (dashboard, publications/[id])
+  components/dashboard/ dashboard, clause diff, obligation card, filters
+  lib/                  contract types, domain adapters, state fetch
 contracts/api.md        frozen API contract
+docs/                   plan, requirements, demo script
 ```
 
-**Why zero dependencies?** Hackathon Wi-Fi is a risk, npm installs are a time sink, and merge conflicts multiply with lockfiles. Python stdlib and native ES modules are enough for this demo and make the whole thing reproducible from a clean folder.
+**Why the split?** The engine stays stdlib-only, so it runs without an install; the dashboard
+is a Next.js app that reads the single `GET /api/state` document and degrades to a fixture
+when the API is unreachable.
 
 ---
 
