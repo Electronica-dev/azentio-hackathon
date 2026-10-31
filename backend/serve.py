@@ -13,7 +13,7 @@ from urllib.parse import urlparse, unquote
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
-from regula import changes, discover, extract_api, pipeline, store  # noqa: E402
+from regula import changes, discover, extract_api, pipeline, rss, store  # noqa: E402
 
 WEB = ROOT.parent / "web"
 LOCK = threading.Lock()
@@ -104,7 +104,7 @@ class Handler(BaseHTTPRequestHandler):
 
         if path in ("/api/discover", "/api/discover/"):
             with LOCK:
-                run = discover.discover(STATE)
+                run = rss.discover(STATE)
                 store.save(STATE)
             return self._json(200, run)
 

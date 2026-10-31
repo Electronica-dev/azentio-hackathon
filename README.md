@@ -40,7 +40,7 @@ flowchart LR
         SEBI["SEBI — sebi.gov.in<br/>Circulars"]
     end
 
-    RBI --> MON["Monitor / scraper<br/>fetch, clean HTML, SHA-256"]
+    RBI --> MON["Monitor / scraper<br/>RSS discovery + HTML extraction, SHA-256"]
     SEBI --> MON
     MON --> REPO[("Repository<br/>document text + hash")]
     REPO --> PARSE["Clause parser<br/>numbered sections and headings"]
@@ -73,10 +73,15 @@ flowchart LR
 
 ### India sources
 
-| Authority | Website | Use |
+| Authority | Website | Discovery |
 |---|---|---|
-| RBI | https://www.rbi.org.in/ | Master Directions, notifications and amendments |
-| SEBI | https://www.sebi.gov.in/ | Circulars and framework amendments |
+| RBI | https://www.rbi.org.in/ | RSS: https://rbi.org.in/notifications_rss.xml |
+| SEBI | https://www.sebi.gov.in/ | RSS: https://www.sebi.gov.in/sebirss.xml |
+
+Neither regulator publishes a JSON API; both publish RSS, which `POST /api/discover` consumes.
+Each item becomes a repository document with title, link, publication date, authority and
+region, deduplicated by URL. Full text for a configured document is fetched by
+`backend/scrape.py`.
 
 The committed demo documents are the RBI **Digital Lending** pair:
 
@@ -154,7 +159,7 @@ Without a key the deterministic pipeline still runs; enrichment fields stay empt
 | GET | `/api/state` | Full workspace: sources, clauses, obligations, impacts, tasks, audit |
 | GET | `/api/changes` | Classified change list with counts by class |
 | GET | `/api/export/{sourceId}.md` | Assessment pack as markdown |
-| POST | `/api/discover` | Run a monitoring cycle |
+| POST | `/api/discover` | Run a monitoring cycle: fetch RBI + SEBI RSS, dedupe by URL |
 | POST | `/api/extract` | Extract text and obligations from an uploaded document |
 | POST | `/api/sources/{id}/run` | Analyse one publication |
 | POST | `/api/impacts/{id}/review` | Approve or reject an impact |
