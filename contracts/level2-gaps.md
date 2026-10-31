@@ -64,16 +64,26 @@ B consumes the shapes below. A owns their production and classification.
 
 ```jsonc
 {
-  "id": "int-ai-gov#c4",
+  "id": "int-ai-gov#3.2",
   "document_id": "int-ai-gov",
   "ref": "3.2",
   "heading": "Model explainability",
-  "text": "The model owner shall document …",
-  "page": 7,
-  "department": "Risk",
-  "tags": ["explainability", "model governance"]
+  "heading_path": ["3", "3.2"],
+  "text": "3.2 Model explainability\n3.2.1 The model owner shall document …",
+  "page": null,
+  "char_start": 4821,
+  "char_end": 5107,
+  "kind": "section",                     // section | block | table
+  "parent_id": null,                     // set when a long section is split
+  "derived": true,
+  "chunker_version": "v1",
+  "document_version": "v2.3"
 }
 ```
+
+**Derivation.** A stores the extracted text beside the uploaded file (`data/org/files/<file>.txt`). B derives chunks from it with `regula/chunks.py` and caches them in `data/org/chunks.json`, keyed by text hash and `chunker_version`. A may take over production later without changing this shape.
+
+Chunk ids are stable for a given text and chunker version, so evidence does not move between runs. `internal_quote` in a mapping must be a verbatim substring of the chunk `text`; `char_start`/`char_end` are provenance hints into the stored text (they may include lines removed as page furniture).
 
 **Minimum B needs:** `id`, `title`, `doc_type`, `department`, `business_area`, `status`. Chunks are required for clause-level mapping; without them B can only produce document-level mappings.
 

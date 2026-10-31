@@ -13,7 +13,7 @@ from urllib.parse import urlparse, unquote
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
-from regula import audit, changes, extract_api, org, pipeline, relate, rss, schedule, store, upload  # noqa: E402
+from regula import audit, changes, chunks, extract_api, org, pipeline, relate, rss, schedule, store, upload  # noqa: E402
 
 WEB = ROOT.parent / "web"
 LOCK = threading.Lock()
@@ -107,6 +107,18 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(200, SCHEDULER.status())
         if path in ("/api/org", "/api/org/"):
             return self._json(200, org.snapshot())
+        if path in ("/api/internal/documents", "/api/internal/documents/"):
+            data = org.snapshot()
+            counts = chunks.counts()
+            documents = [{**doc, "chunks": counts.get(doc["id"], 0)} for doc in data["documents"]]
+            return self._json(200, {"documents": documents, "categories": data["categories"]})
+        if path.startswith("/api/internal/documents/"):
+            rest = [part for part in path.split("/") if part]
+            if len(rest) == 5 and rest[4] == "chunks":
+                doc_id = rest[3]
+                if not any(doc["id"] == doc_id for doc in org.snapshot()["documents"]):
+                    return self._json(404, {"error": "document not found"})
+                return self._json(200, {"document_id": doc_id, "chunks": chunks.load_chunks(doc_id)})
         if path in ("/api/overview", "/api/overview/"):
             with LOCK:
                 return self._json(200, org.overview(STATE))
