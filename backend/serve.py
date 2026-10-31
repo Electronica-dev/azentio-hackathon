@@ -8,12 +8,12 @@ import sys
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse, unquote
+from urllib.parse import urlparse, unquote, parse_qs
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
-from regula import audit, changes, chunks, extract_api, org, pipeline, relate, rss, schedule, store, upload  # noqa: E402
+from regula import audit, changes, chunks, extract_api, level2, org, pipeline, relate, rss, schedule, store, upload  # noqa: E402
 
 WEB = ROOT.parent / "web"
 LOCK = threading.Lock()
@@ -93,7 +93,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self) -> None:
         self.send_response(204)
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
 
@@ -126,6 +126,42 @@ class Handler(BaseHTTPRequestHandler):
             with LOCK:
                 items = changes.build_changes(STATE)
                 return self._json(200, {"changes": items, "summary": changes.summary(items)})
+        if path.startswith("/api/level2/"):
+            query = parse_qs(urlparse(self.path).query)
+            rest = [part for part in path.split("/") if part]
+            try:
+                if path in ("/api/level2/analyses", "/api/level2/analyses/"):
+                    return self._json(200, {"analyses": level2.list_analyses()})
+                if path in ("/api/level2/impact-matrix", "/api/level2/impact-matrix/"):
+                    analysis_id = (query.get("analysis_id") or [""])[0]
+                    if not analysis_id:
+                        return self._json(400, {"error": "analysis_id is required"})
+                    return self._json(200, {"rows": level2.matrix(STATE, analysis_id)})
+                if rest[:3] == ["api", "level2", "analyses"] and len(rest) >= 4:
+                    analysis_id = rest[3]
+                    if len(rest) == 4:
+                        return self._json(200, {"analysis": level2.get_analysis(analysis_id)})
+                    if len(rest) == 5 and rest[4] == "mappings":
+                        return self._json(200, {"mappings": level2.mappings_for(
+                            analysis_id,
+                            obligation_id=(query.get("obligation_id") or [None])[0],
+                            document_id=(query.get("document_id") or [None])[0],
+                            level=(query.get("level") or [None])[0],
+                        )})
+                    if len(rest) == 5 and rest[4] == "gaps":
+                        return self._json(200, {"gaps": level2.gaps_for(
+                            analysis_id,
+                            state=(query.get("state") or [None])[0],
+                            department=(query.get("department") or [None])[0],
+                        )})
+                    if len(rest) == 5 and rest[4] == "recommendations":
+                        return self._json(200, {"recommendations": level2.recommendations_for(
+                            analysis_id,
+                            status=(query.get("status") or [None])[0],
+                            priority=(query.get("priority") or [None])[0],
+                        )})
+            except KeyError:
+                return self._json(404, {"error": "analysis not found"})
         if path.startswith("/api/export/"):
             sid = path.rsplit("/", 1)[-1].replace(".md", "")
             try:
@@ -156,6 +192,34 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(200, SCHEDULER.configure(self._body().get("cron")))
             except schedule.CronError as exc:
                 return self._json(400, {"error": str(exc)})
+
+        if path in ("/api/level2/analyses", "/api/level2/analyses/"):
+            body = self._body()
+            with LOCK:
+                try:
+                    result = level2.analyse(STATE, body, actor=body.get("actor") or "Regula Agent")
+                    store.save(STATE)
+                except ValueError as exc:
+                    return self._json(400, {"error": str(exc)})
+                except Exception as exc:  # noqa: BLE001 - analysis is user-triggered
+                    return self._json(400, {"error": f"analysis failed: {exc}"})
+            return self._json(201, {"analysis": result})
+
+        if parts[:3] == ["api", "level2", "recommendations"] and len(parts) == 5 and parts[4] == "review":
+            body = self._body()
+            with LOCK:
+                try:
+                    rec = level2.review_recommendation(STATE, parts[3], body)
+                    store.save(STATE)
+                except KeyError:
+                    return self._json(404, {"error": "recommendation not found"})
+                except PermissionError as exc:
+                    return self._json(403, {"error": str(exc)})
+                except RuntimeError as exc:
+                    return self._json(409, {"error": str(exc)})
+                except ValueError as exc:
+                    return self._json(400, {"error": str(exc)})
+            return self._json(200, {"recommendation": rec})
 
         if path in ("/api/extract", "/api/extract/"):
             body = self._body()
@@ -297,6 +361,25 @@ class Handler(BaseHTTPRequestHandler):
         except ValueError as exc:
             return self._json(400, {"error": str(exc)})
         return self._json(200, {"added": added})
+
+    def do_PATCH(self) -> None:
+        path = unquote(urlparse(self.path).path)
+        parts = [p for p in path.split("/") if p]
+        if parts[:3] == ["api", "level2", "recommendations"] and len(parts) == 4:
+            body = self._body()
+            with LOCK:
+                try:
+                    rec = level2.edit_recommendation(STATE, parts[3], body,
+                                                     actor=body.get("actor") or "Reviewer")
+                    store.save(STATE)
+                except KeyError:
+                    return self._json(404, {"error": "recommendation not found"})
+                except RuntimeError as exc:
+                    return self._json(409, {"error": str(exc)})
+                except ValueError as exc:
+                    return self._json(400, {"error": str(exc)})
+            return self._json(200, {"recommendation": rec})
+        return self._json(404, {"error": "unknown endpoint"})
 
     def _static(self, path: str) -> None:
         rel = "index.html" if path in ("", "/") else path.lstrip("/")

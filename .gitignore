@@ -1,5 +1,6 @@
 # runtime
 backend/data/db.json
+backend/data/level2.json
 backend/data/org/
 backend/data/uploads/
 __pycache__/
