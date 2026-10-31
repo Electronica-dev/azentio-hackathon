@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "seed-reg-change",
+  "filename": "Regulatory_Change_Management_Procedure.docx",
+  "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "sha256": "d0f2d47982512d8ff64a65deda823e1075a58ffd0988a57474a68a31070b24d2",
+  "metadata": {
+    "title": "Regulatory Change Management Procedure",
+    "category": "process",
+    "department": "Compliance",
+    "owner": "Asha Rao",
+    "version": "1.0",
+    "review_date": "2027-03-31",
+    "uploaded": "2026-10-31T18:12:50",
+    "uploaded_by": "Regula demonstration seed"
+  },
+  "content": {
+    "text": "Regulatory Change Management Procedure\nINTERNAL DEMONSTRATION TEMPLATE - NOT APPROVED FOR OPERATIONAL USE\nOwner: Asha Rao | Department: Compliance\nVersion: 1.0 | Next review: 2027-03-31\n1. Purpose\nThis procedure defines how regulatory publications are assessed, assigned, implemented, and evidenced. Regula provides decision support; accountable staff validate every material conclusion.\n2. Intake and triage\n- Record the issuing authority, publication title, reference, publication and effective dates, source URL, and received date. Preserve the source file and its integrity hash.\n- Check whether the publication is new, amends or repeals an earlier instrument, or is informational. Record uncertainty and request review rather than assuming a relationship.\n3. Impact assessment\n- Identify changed requirements and cite the source passage and clause. Distinguish a confirmed obligation from interpretation or implementation guidance.\n- Map each confirmed change to affected policies, processes, systems, controls, accountable owner, and evidence. Record rationale for assets assessed as unaffected.\n4. Approval and implementation\n- Compliance assigns an accountable business owner, implementation actions, due dates, and dependencies. Owners estimate delivery effort and attach completion evidence.\n- A designated reviewer approves the assessment and proposed plan. Material uncertainty, conflicts, or missed deadlines are escalated to the Compliance lead.\n5. Closure and records\nClose a change only when required actions are complete, evidence is retained, and the reviewer records approval. Preserve the decision history, source versions, and approvals under the records schedule.",
+    "quality": "docx",
+    "words": 229
+  }
+}

@@ -231,3 +231,119 @@ export async function addOrgRecords(
 export async function deleteOrgRecord(kind: "documents" | "assets" | "people", id: string): Promise<OrgResult> {
   return orgRequest(`${kind}/${encodeURIComponent(id)}/delete`, {})
 }
+
+export type Level2Result = { ok: boolean; message?: string; analysisId?: string }
+
+/** Run the Level 2 mapping → gap → draft pass over the analysed obligations. */
+export async function runLevel2Analysis(sourceId?: string): Promise<Level2Result> {
+  try {
+    const response = await fetch(`${API}/api/level2/analyses`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ regulatory_source_id: sourceId || undefined, actor: "Compliance reviewer" }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(180_000),
+    })
+    const data = (await response.json().catch(() => null)) as
+      | { analysis?: { id?: string }; error?: string }
+      | null
+    if (!response.ok) return { ok: false, message: data?.error ?? `analysis returned HTTP ${response.status}` }
+    revalidatePath("/assessments")
+    return { ok: true, analysisId: data?.analysis?.id }
+  } catch (error) {
+    return { ok: false, message: error instanceof Error ? error.message : "analysis failed" }
+  }
+}
+
+/** Edit a draft recommendation. Only drafts are editable; the backend enforces it. */
+export async function saveRecommendation(
+  id: string,
+  patch: { proposed_text?: string; title?: string; implementation_notes?: string; business_area?: string; acceptance_criteria?: string[] },
+): Promise<Level2Result> {
+  try {
+    const response = await fetch(`${API}/api/level2/recommendations/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...patch, actor: "Compliance reviewer" }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    })
+    const data = (await response.json().catch(() => null)) as { error?: string } | null
+    if (!response.ok) return { ok: false, message: data?.error ?? `save returned HTTP ${response.status}` }
+    revalidatePath("/assessments")
+    return { ok: true }
+  } catch (error) {
+    return { ok: false, message: error instanceof Error ? error.message : "save failed" }
+  }
+}
+
+/** Approve or reject a draft. The role is verified by the backend. */
+export async function reviewRecommendation(
+  id: string,
+  decision: "approve" | "reject",
+  role: "reviewer" | "admin",
+  note: string,
+): Promise<Level2Result> {
+  try {
+    const response = await fetch(`${API}/api/level2/recommendations/${encodeURIComponent(id)}/review`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ decision, role, note, actor: "Compliance reviewer" }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    })
+    const data = (await response.json().catch(() => null)) as { error?: string } | null
+    if (!response.ok) return { ok: false, message: data?.error ?? `review returned HTTP ${response.status}` }
+    revalidatePath("/assessments")
+    return { ok: true }
+  } catch (error) {
+    return { ok: false, message: error instanceof Error ? error.message : "review failed" }
+  }
+}
+
+// Level 2: impact analysis, owners and actions. The reviewer identity is fixed
+// until the app has sign-in; the backend requires role reviewer|admin.
+const REVIEWER = { actor: "Compliance reviewer", role: "reviewer" } as const
+
+export type ImpactResult = { ok: boolean; message?: string; id?: string }
+
+async function level2Request(path: string, method: "POST" | "PATCH", body: unknown): Promise<ImpactResult> {
+  try {
+    const response = await fetch(`${API}/api/level2/${path}`, {
+      method,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+      cache: "no-store",
+      signal: AbortSignal.timeout(120_000),
+    })
+    const data = (await response.json().catch(() => null)) as { error?: string; analysis?: { id?: string } } | null
+    if (!response.ok) return { ok: false, message: data?.error ?? `request returned HTTP ${response.status}` }
+    revalidatePath("/", "layout")
+    return { ok: true, id: data?.analysis?.id }
+  } catch (error) {
+    return { ok: false, message: error instanceof Error ? error.message : "request failed" }
+  }
+}
+
+/** Map obligations to internal clauses, assess gaps, draft changes, then match owners from the register. */
+export async function runImpactAnalysis(scope: { regulatory_source_id: string } | { obligation_ids: string[] }) {
+  return level2Request("analyses", "POST", { ...scope, actor: REVIEWER.actor })
+}
+
+/** Re-run the ownership register lookup, e.g. after importing people. Never overwrites a reviewer's choice. */
+export async function matchOwners(analysisId: string) {
+  return level2Request(`analyses/${encodeURIComponent(analysisId)}/assign-owners`, "POST", { actor: REVIEWER.actor })
+}
+
+export async function updateAssignment(
+  recommendationId: string,
+  patch: {
+    owner_id?: string | null
+    confirm?: boolean
+    due_date?: string | null
+    implementation_status?: string | null
+    priority_override?: string | null
+  },
+) {
+  return level2Request(`recommendations/${encodeURIComponent(recommendationId)}/assignment`, "PATCH", { ...patch, ...REVIEWER })
+}

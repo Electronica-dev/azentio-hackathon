@@ -32,6 +32,8 @@ decision chain: **regulation → clause → obligation → impacted asset → ow
   shortened, clarification, or no material change.
 - **Assess impact** against a control library (policies, processes, systems, controls), with a
   numeric gap, severity score and ownership.
+- **Map internally**: link each obligation to the internal clause that should cover it, state the
+  compliance gap, and draft the specific policy change for a reviewer to approve.
 - **Plan and prove**: owned tasks with due dates, human approval, and a SHA-256 hash chain over
   every extraction, approval and status change.
 
@@ -192,6 +194,100 @@ The committed demo documents are the RBI **Digital Lending** pair:
 `backend/scrape.py` reproduces both text files from those pages; `backend/data/scrape-manifest.json`
 records the source URL and content hash.
 
+## Impact assessment (Level 2)
+
+Level 2 answers a different question from the redline: **does the bank's own documentation cover
+this obligation, and if not, what exactly should change?** It runs as a separate pass because the
+regulatory corpus and the internal corpus (`backend/data/org/`) are owned by different parts of the
+product.
+
+```mermaid
+flowchart TD
+    OBL["Regulatory obligation<br/>verbatim quote · section ref · tags"] --> ELEM["Required elements<br/>human review · audit trail · explainability<br/>reporting · governance · consent<br/>deadline · numeric threshold"]
+    DOC["Internal document<br/>data/org/documents.json"] --> TEXT["Extracted text<br/>data/org/files/*.txt"]
+    TEXT --> CHUNK["Chunks<br/>heading path · § ref · offsets"]
+    CHUNK --> INDEX["TF-IDF index over clauses"]
+    OBL --> SCORE["Score each document<br/>0.8 × best-clause cosine<br/>+ 0.2 × tag overlap"]
+    INDEX --> SCORE
+    SCORE --> CAND{"Top 3 documents<br/>above 0.10?"}
+    CAND -- no --> CANNOT["cannot_assess<br/>→ evidence_request draft"]
+    CAND -- yes --> MAP["Clause mappings<br/>top 3 chunks at or above 0.16"]
+    MAP --> COVER{"Are all required<br/>elements covered?"}
+    COVER -- all --> ADDR["addressed<br/>no draft"]
+    COVER -- some --> PART["partially_addressed"]
+    COVER -- none --> NONE["not_addressed"]
+    PART --> DRAFT["Draft recommendation<br/>missing element → change type<br/>proposed_text · clause · area · priority"]
+    NONE --> DRAFT
+    DRAFT --> POLISH["Optional model polish<br/>rule_text kept · method: llm"]
+    POLISH --> REVIEW["Reviewer approves or rejects<br/>hash-chained audit"]
+    CANNOT --> REVIEW
+    REVIEW --> MATRIX["Impact matrix row<br/>obligation × document<br/>owner unassigned · suggested department"]
+```
+
+### How the mapping is decided
+
+- **Candidates, not the whole corpus.** Every obligation scores every indexed document by its best
+  matching clause (`0.8 × TF-IDF cosine + 0.2 × tag overlap`). Only the top three above `0.10` are
+  assessed, so a KYC requirement is not compared against the cyber policy.
+- **Clause-level evidence.** For each candidate, the best three clauses at or above `0.16` become
+  `Mapping` records carrying the internal quote, the § reference and a relation
+  (`addresses`, `partially_addresses`, `references`).
+- **Required elements, not one similarity score.** The obligation is decomposed into what it
+  actually asks for — human review, audit trail/retention, explainability, reporting, governance,
+  consent, deadline, numeric threshold. The gap is the set difference between those elements and
+  what the matched clauses establish.
+- **Four honest states.** All elements covered → `addressed`; some → `partially_addressed`; a
+  candidate exists but no element is established → `not_addressed`; nothing relevant was indexed →
+  `cannot_assess`. The last produces an `evidence_request`, never a fabricated policy change.
+- **Drafts are specific.** A missing element determines the change type (process step, clause
+  amendment, system change, control) and the proposed wording, which cites the obligation and
+  names an acceptance criterion. Priority comes from the change class and the effective date.
+- **The model only polishes wording.** With `REGULA_LLM_API_KEY`, up to six compliance drafts are
+  rewritten for specificity. `rule_text` keeps the deterministic version, a failure marks the run
+  `partial`, and the model never changes the state or the clause.
+
+### Run an assessment that means something
+
+An assessment is only as good as its two inputs: extracted obligations and an internal corpus.
+
+1. **Start the API and the UI.**
+   ```bat
+   run.cmd
+   cd frontend && npm run dev
+   ```
+2. **Make sure obligations exist.** The seed analyses `src-kyc-2026` (21 obligations). Other
+   publications stay `new` until analysed: `POST /api/sources/{id}/run`, or open the publication
+   from the Regulatory page and run it.
+3. **Upload internal documents** in **Organisation → Documents**. Give each the right category and
+   department, and make sure text is extractable (TXT, DOCX, or a text-based PDF — `pypdf` helps).
+   A single KYC policy leaves CRILC, V-CIP and PAN requirements `cannot_assess`.
+4. **Run the assessment** at **http://localhost:3000/assessments** → *Run assessment*. Or:
+   ```bat
+   curl -X POST http://127.0.0.1:8787/api/level2/analyses ^
+        -H "content-type: application/json" ^
+        -d "{\"regulatory_source_id\":\"src-kyc-2026\"}"
+   ```
+5. **Review the drafts.** Approve or reject as `reviewer` or `admin`; approval is final and
+   hash-chained. Re-running creates a new analysis and supersedes the old drafts.
+
+Meaningful output usually needs three to eight internal documents spread across policy, process,
+control and system categories. One policy per regulatory area is enough to turn `cannot_assess`
+into real partial or covered states.
+
+### See the whole flow
+
+| Stage | Where | What you see |
+|---|---|---|
+| Mapping + gap | `/assessments` → **Gaps** | obligation → internal §, relation, missing elements, why insufficient, confidence |
+| Recommended policy change | `/assessments` → **Drafts** | proposed wording, clause quote, target §, business area, priority, acceptance criteria, editable draft + approval |
+| Actions / ownership | `/assessments` → **Impact matrix** | one row per obligation × document: gap state, recommendation, priority, unassigned owner + suggested department |
+| Machine handoff | `GET /api/level2/impact-matrix?analysis_id=…` | the same rows for the ownership/action workstream |
+| Proof | `GET /api/state` → `audit` | analysis, draft and approval events in the hash chain |
+
+**Scope note:** owner, deadline and implementation status are defined in the contract
+(`contracts/level2-gaps.md`) and rendered as unassigned with a suggested department. Assigning them
+belongs to the matrix/ownership workstream — this engine never invents an owner.
+
 ## Repository
 
 ```
@@ -201,28 +297,34 @@ backend/
   requirements.txt      optional: pypdf for real-world PDF text
   regula/
     ingest.py           clause parsing, prior alignment, redline
+    chunks.py           deterministic clause chunking for internal documents
     extract.py          obligations with quotes, params, deadlines
-    enrich.py           AI alignment, change class, significance
+    enrich.py           AI alignment, change class, significance, draft polish
     changes.py          change taxonomy across the repository
     discover.py         source monitoring (feeds + offline mirrors)
     rss.py              RSS / rulebook discovery and ingestion
     relate.py           predecessor selection and relationship scoring
     upload.py           manual upload: extraction, relate, backfill
+    org.py              internal documents, assets and people
     extract_api.py      preview extraction + relationship for a pasted document
     match.py            asset matching over the control library
     assess.py           severity, numeric gap, rationale, effort
+    level2.py           obligation mapping, gap analysis, draft recommendations
     planner.py          owned tasks, dependencies, due dates
     pipeline.py         run orchestration
     audit.py            SHA-256 hash chain
     store.py            state, persistence, report export
-  data/                 documents, prior versions, inventory, regulators
+  data/                 documents, prior versions, inventory, regulators, org/
 frontend/
-  app/                  Next.js routes (home, regulatory, organisation, publication detail)
+  app/                  Next.js routes (home, regulatory, organisation, publication detail, assessments, impact)
   components/dashboard/ regulatory repository, publication detail, filters and actions
   components/home/      compliance overview
   components/organisation/ documents, assets and people management
-  lib/                  contract types, domain adapters, API/state fetch
+  components/assessments/  gaps, drafts, impact matrix
+  components/impact/    impact actions and matrix views
+  lib/                  contract types, domain adapters, state, Level 2 and impact fetch
 contracts/api.md        API contract
+contracts/level2-gaps.md  Level 2 gap/recommendation contract
 docs/                   requirements, plan, demo script
 ```
 
@@ -249,6 +351,9 @@ npm run dev             :: http://localhost:3000
 
 The frontend reads `GET http://127.0.0.1:8787/api/state` server-side and falls back to
 `frontend/mock/state.json` with a visible degraded banner if the API is down.
+
+Pages: `/` home · `/regulatory` inbox · `/organisation` internal repository · `/assessments` impact
+assessment.
 
 **AI enrichment** is a direct OpenAI-compatible call (no provider abstraction, no offline
 cache). Add a repo-root `.env`:
@@ -299,14 +404,26 @@ restart, after which `.env` applies again.
 | POST | `/api/org/assets` | Add assets: `{item}`, `{items}` or `{csv}` (`name,type,owner,department,criticality,description,tags`) |
 | POST | `/api/org/people` | Add people: `{item}`, `{items}` or `{csv}` (`name,email,department,designation`) |
 | POST | `/api/org/{documents\|assets\|people}/{id}/delete` | Remove one record |
+| GET | `/api/internal/documents` | Internal documents with derived chunk counts |
+| GET | `/api/internal/documents/{id}/chunks` | Clause chunks with § refs, heading paths and offsets |
+| POST | `/api/level2/analyses` | Run mapping → gap → draft (`{regulatory_source_id}` or `{obligation_ids}`) |
+| GET | `/api/level2/analyses` | Run history, newest first |
+| GET | `/api/level2/analyses/{id}` | One run with mappings, gaps and drafts |
+| GET | `/api/level2/analyses/{id}/mappings` | Clause mappings (`?obligation_id`, `?document_id`, `?level`) |
+| GET | `/api/level2/analyses/{id}/gaps` | Gaps (`?state`, `?department`) |
+| GET | `/api/level2/analyses/{id}/recommendations` | Drafts (`?status`, `?priority`) |
+| GET | `/api/level2/impact-matrix?analysis_id=` | Handoff rows for the ownership/action workstream |
+| PATCH | `/api/level2/recommendations/{id}` | Edit a draft |
+| POST | `/api/level2/recommendations/{id}/review` | Approve or reject (`role: reviewer\|admin`) |
 
 ## Data honesty
 
 The RBI documents are real and publicly available; the text is extracted from the official
 notification pages. The 2025 Directions explicitly repeal the 2022 Guidelines. The control
 library is a curated model of a mid-size Indian bank's KYC and lending stack, not an import
-from a GRC system. The optional LLM is used for alignment, classification and significance;
-every obligation still carries a verbatim quote and clause reference.
+from a GRC system. The optional LLM is used for alignment, classification, significance and draft
+wording; every obligation still carries a verbatim quote and clause reference, and every draft keeps
+its deterministic `rule_text`.
 
 Known limits: PDF text extraction uses `pypdf` when it is installed - real-world PDFs that store
 text as CID/Identity-H glyphs need it, and the stdlib fallback only reads simple literal-string

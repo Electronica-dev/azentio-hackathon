@@ -208,7 +208,8 @@ Rules:
   ],
   "confidence": 0.82,
   "confidence_basis": "clause-level gap with an explicit missing element",
-  "method": "rule",
+  "method": "rule",                     // rule | llm
+  "rule_text": null,                    // deterministic wording, set when method is llm
   "status": "draft",                     // draft | approved | rejected | superseded
   "version": 1,
   "created_at": "2026-10-31T16:10:00+05:30",
@@ -354,7 +355,8 @@ Response `201`:
       "obligations": 6,
       "mappings": 11,
       "gaps": { "addressed": 1, "partially_addressed": 3, "not_addressed": 1, "cannot_assess": 1 },
-      "recommendations": { "draft": 4, "evidence_request": 1 }
+      "recommendations": { "draft": 4, "evidence_request": 1 },
+      "polished": 0
     },
     "generated_at": "2026-10-31T16:10:00+05:30",
     "engine_version": "level2-1"
@@ -417,6 +419,8 @@ A recommendation is rejected at `422` unless it satisfies:
 5. `business_area` is non-empty; it is copied from the internal document but may be corrected by a reviewer.
 
 Draft wording for `cannot_assess` must be an evidence request, e.g. *"Provide the AI governance policy section covering human review of automated credit decisions"* — not a fabricated clause.
+
+**Optional model polish.** When `REGULA_LLM_API_KEY` is configured, up to six `compliance_change` drafts per run are rewritten for specificity. `method` becomes `llm`, `rule_text` preserves the deterministic wording, and a failed call leaves `method: rule` and marks the analysis `partial`. The model never changes `status`, `gap_ids`, `priority` or `regulatory_clause`.
 
 ---
 

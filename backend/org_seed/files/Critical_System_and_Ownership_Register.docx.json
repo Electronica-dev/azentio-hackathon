@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "seed-system-register",
+  "filename": "Critical_System_and_Ownership_Register.docx",
+  "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "sha256": "4f8963c45dec5d37c263cb175734d0ce473cd31600369d79dad2365bbbce41f1",
+  "metadata": {
+    "title": "Critical System and Ownership Register",
+    "category": "system_inventory",
+    "department": "Technology",
+    "owner": "Ravi Iyer",
+    "version": "1.0",
+    "review_date": "2027-01-31",
+    "uploaded": "2026-10-31T18:12:50",
+    "uploaded_by": "Regula demonstration seed"
+  },
+  "content": {
+    "text": "Critical System and Ownership Register\nINTERNAL DEMONSTRATION TEMPLATE - NOT APPROVED FOR OPERATIONAL USE\nOwner: Ravi Iyer | Department: Technology\nVersion: 1.0 | Next review: 2027-01-31\n1. Register purpose\nThis sample register illustrates the minimum inventory fields expected for systems supporting regulated or customer-facing processes. Replace sample entries with verified organisational data before operational use.\n2. Sample critical services\n- Loan Origination Platform - Technology owner; supports application intake, decision workflow, and customer communications; criticality: high.\n- Customer Identity Service - Operations owner; supports identity verification and screening; criticality: high.\n- Policy and Evidence Repository - Compliance owner; stores approved procedures, regulatory assessments, and review evidence; criticality: medium.\n3. Required inventory fields\n- Record a unique system identifier, service name, business purpose, accountable owner, operating team, criticality, lifecycle state, and review date.\n- Record data classification, key integrations, hosting or provider, recovery objectives, support contacts, and applicable control references where known.\n4. Ownership and review\n- The accountable owner confirms the entry at least annually and when service ownership or material dependencies change. Technology validates technical attributes and dependencies.\n- Record each review date, reviewer, corrections, unresolved gaps, and approval. Escalate critical services with missing owners or recovery information.\n5. Handling and limitations\nTreat the register as internal information. Do not enter credentials, secrets, or unnecessary personal data. This generated example contains illustrative service names only.",
+    "quality": "docx",
+    "words": 226
+  }
+}

@@ -150,7 +150,7 @@ export function Home({ overview }: { overview: Overview }) {
                       <CircleAlertIcon className="mt-0.5 size-4 shrink-0 text-rose-600 dark:text-rose-400" aria-hidden />
                       <span className="min-w-0">
                         <span className="block text-sm font-medium group-hover:text-primary">{item.asset}</span>
-                        <span className="mt-0.5 line-clamp-2 block text-sm text-muted-foreground">{item.gap}</span>
+                        <span className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">{item.gap}</span>
                         <span className="mt-1 block text-xs text-muted-foreground">
                           {item.ref} · {item.owner ? `${item.owner}, ` : ""}{item.team}
                         </span>

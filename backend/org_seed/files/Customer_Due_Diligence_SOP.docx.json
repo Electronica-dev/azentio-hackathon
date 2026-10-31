@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "seed-cdd-sop",
+  "filename": "Customer_Due_Diligence_SOP.docx",
+  "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "sha256": "348ad2ef3cc29a3031cbfbaafe5c3fd5b27b7e996cfd1ddf686412d82c686544",
+  "metadata": {
+    "title": "Customer Due Diligence Standard Operating Procedure",
+    "category": "policy",
+    "department": "Compliance",
+    "owner": "Priya Menon",
+    "version": "1.0",
+    "review_date": "2027-04-30",
+    "uploaded": "2026-10-31T18:12:50",
+    "uploaded_by": "Regula demonstration seed"
+  },
+  "content": {
+    "text": "Customer Due Diligence Standard Operating Procedure\nINTERNAL DEMONSTRATION TEMPLATE - NOT APPROVED FOR OPERATIONAL USE\nOwner: Priya Menon | Department: Compliance\nVersion: 1.0 | Next review: 2027-04-30\n1. Purpose and scope\n- This demonstration procedure describes a risk-based customer due diligence workflow for onboarding and periodic review. It is an internal example and is not approved operational guidance.\n- It applies to retail and business customer onboarding teams, Compliance reviewers, and the operations supporting identity and screening systems.\n2. Roles and responsibilities\n- The onboarding analyst collects information, verifies evidence, records screening results, and escalates discrepancies.\n- The Compliance reviewer decides escalations, approves documented exceptions, and records the rationale. Business owners remain accountable for complete and timely reviews.\n3. Minimum onboarding checks\n- Identify the customer and capture the required identity and contact attributes for the customer type.\n- Verify the information using approved, reliable evidence; record the source, verification date, and analyst.\n- Screen the customer and relevant connected parties against the institution's configured lists. Resolve potential matches before activation.\n- Assign a documented risk tier using approved factors, including customer type, geography, product, delivery channel, and expected activity.\n4. Exceptions and escalation\n- Do not activate an account while a material identity discrepancy or unresolved potential sanctions match remains open.\n- Escalate incomplete evidence, unusual ownership structures, and higher-risk cases to Compliance. An exception must state the reason, compensating controls, approver, and expiry date.\n5. Records and quality assurance\n- Store evidence and decision records in the approved case repository with access limited to authorised roles.\n- A supervisor samples completed cases monthly and tracks defects to closure. Retain records according to the approved retention schedule.",
+    "quality": "docx",
+    "words": 278
+  }
+}

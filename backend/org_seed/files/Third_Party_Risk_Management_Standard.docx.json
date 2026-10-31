@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "seed-third-party",
+  "filename": "Third_Party_Risk_Management_Standard.docx",
+  "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "sha256": "7473d068faa328c54715eb319c1c62e890d8202d6f58d3744306f391e9a0f169",
+  "metadata": {
+    "title": "Third-Party Risk Management Standard",
+    "category": "ownership_register",
+    "department": "Procurement",
+    "owner": "Asha Rao",
+    "version": "1.0",
+    "review_date": "2027-06-30",
+    "uploaded": "2026-10-31T18:12:50",
+    "uploaded_by": "Regula demonstration seed"
+  },
+  "content": {
+    "text": "Third-Party Risk Management Standard\nINTERNAL DEMONSTRATION TEMPLATE - NOT APPROVED FOR OPERATIONAL USE\nOwner: Asha Rao | Department: Procurement\nVersion: 1.0 | Next review: 2027-06-30\n1. Purpose and applicability\nThis demonstration standard describes lifecycle governance for providers that support business or technology services. The service owner remains accountable for risks arising from outsourced activities.\n2. Due diligence before engagement\n- Record the service, business sponsor, data handled, system connectivity, criticality, subcontracting, and intended service locations.\n- Assess security, privacy, resilience, financial, and concentration risks proportionately before approval. Document gaps, mitigations, and any required senior approval.\n3. Contract and onboarding\n- Contracts should define service levels, confidentiality, data handling, access restrictions, incident notification, audit or assurance rights, subcontractor controls, continuity, and termination assistance.\n- Before access is enabled, name an internal service owner, establish least-privilege access, and record onboarding approvals and required evidence.\n4. Ongoing oversight\n- Review critical providers at least annually and after material incidents or service changes. Track service performance, assurance reports, open findings, incidents, and remediation dates.\n- Escalate overdue high-risk findings and material service failures to the service owner and relevant risk committee.\n5. Exit and records\n- Maintain a practical exit plan for critical services, including data return or deletion, access revocation, transition dependencies, and replacement options.\n- Retain assessments, approvals, contracts, reviews, and exit evidence in the approved repository.",
+    "quality": "docx",
+    "words": 225
+  }
+}

@@ -1,0 +1,564 @@
+{
+  "schema_version": 1,
+  "id": "seed-kyc-standard",
+  "filename": "KYC_Customer_Due_Diligence_Control_Standard.docx",
+  "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "sha256": "074f1dbb75fc6503a0aa9f701baf43b0865cd818ab57ef802ccace6a71ff5211",
+  "metadata": {
+    "title": "Know Your Customer (KYC) and Customer Due Diligence Control Standard",
+    "category": "policy",
+    "department": "Compliance",
+    "owner": "Priya Menon",
+    "version": "1.0",
+    "review_date": "2027-10-31",
+    "uploaded": "2026-10-31T18:19:24",
+    "uploaded_by": "Regula demonstration seed"
+  },
+  "content": {
+    "text": "Know Your Customer (KYC) and Customer Due Diligence Control Standard\nINTERNAL DEMONSTRATION TEMPLATE - NOT APPROVED FOR OPERATIONAL USE\nDocument owner: Priya Menon | Department: Compliance\nVersion: 1.0 | Next review: 2027-10-31\nClassification: Internal - fictional training and product demonstration content\n\n1. Status, purpose, and authority\nThis detailed internal demonstration standard describes a risk-based control framework for identifying customers, understanding ownership and control, screening relevant parties, assessing risk, and maintaining customer records throughout a relationship.\nThis is fictional sample content for the Regula demonstration repository. It is not an actual regulation, legal opinion, or approved bank policy. It states no statutory threshold, mandatory deadline, or universal retention period. Compliance and Legal must validate applicable laws and obtain formal approval before operational adoption.\nApplicable law and formally approved higher-level policies prevail. Staff record and escalate conflicts instead of resolving them by informal interpretation. The owner maintains a jurisdictional addendum identifying applicable requirements, approved evidence, decision authorities, and local procedures.\n2. Scope and objectives\nThe standard covers customer onboarding, product and account activation, material changes, periodic refresh, event-driven review, restrictions, and relationship exit. It applies to individuals, sole proprietors, companies, partnerships, trusts and comparable arrangements, public bodies, and people acting through representatives, subject to locally approved procedures.\nIt applies to employees and relevant contractors in Relationship Management, Branch and Digital Operations, Compliance, Financial Crime, Sanctions, Fraud, Data Protection, Technology, Product, and Internal Audit. Outsourcing a task does not transfer institutional accountability for the decision or oversight.\nEstablish and verify identity using approved evidence and methods.\nUnderstand legal-entity ownership, beneficial ownership, control, and representative authority to the level required.\nUnderstand relationship purpose and expected activity, assign a supported risk rating, and apply proportionate controls.\nPrevent activation while material required checks or approvals remain unresolved; maintain an auditable record and protect customer information.\n3. Governance and accountability\nThe Board or delegated risk committee approves risk appetite and receives material control reporting. The executive accountable for Financial Crime ensures the framework is resourced. Compliance owns this standard, interprets internal requirements with Legal, maintains procedures and decision criteria, and monitors adherence.\nBusiness and product owners ensure KYC controls are designed into customer journeys and reviewed before a new product, channel, or material change is released.\nThe onboarding analyst collects information, performs assigned checks, assesses evidence quality, records results, and escalates discrepancies. Analysts do not approve their own elevated-risk exceptions.\nA designated reviewer challenges completeness, evidence, risk rationale, and authority. Elevated-risk acceptance requires the specific senior approval defined in the institution's approved risk appetite.\nRelationship owners maintain customer information and respond to refresh requests. Operations maintains workflow controls. Technology protects systems, access, interfaces, logs, and data quality.\nData Protection advises on lawful and proportionate handling; Legal advises on local law and conflicts; Internal Audit independently tests controls without owning them.\nA separately approved authority matrix identifies who can assign risk, approve elevated-risk relationships and exceptions, restrict activity, and authorize closure. Delegations are recorded, conflict-checked, and time-bounded where appropriate.\n4. Customer identification and verification\nBefore activation, establish identity using the institution's approved evidence list for the customer type and channel. The list specifies acceptable sources, required attributes, verification method, freshness and authenticity checks, limitations, and an alternative route when standard evidence is unavailable.\nFor individuals, capture approved identifying attributes such as legal name and relevant variations, date of birth or another distinguishing attribute, address where required, and reliable contact details.\nFor entities, capture legal name, registration or equivalent identifier, legal form, formation jurisdiction and date where available, registered and operating addresses, business activity, and status using reliable evidence where available.\nFor public bodies or comparable customers, record classification basis, establishing authority, representative, and locally required evidence or approvals.\nFor an agent, guardian, or other representative, verify identity and authority. Record the mandate source, scope, effective date, and expiry or revocation conditions.\nWhere required and available, corroborate customer-supplied information with a reliable independent source. Record attributes checked, source, date, method, result, operator, and limitations. A document image alone does not establish authenticity unless an approved method supports that conclusion.\nPause the affected workflow when evidence is inconsistent, expired, altered, unverifiable, or materially incomplete. A reviewer determines whether an approved alternative resolves the issue. Never invent or silently normalize missing identity information.\n5. Legal entities, beneficial ownership, and control\nEstablish ownership and control to the level required by applicable law and the approved risk-based procedure. Distinguish direct owners, indirect owners, beneficial owners, persons exercising control, any legally permitted senior-managing-official fallback, and authorized representatives. Record the basis for identifying each person.\nCreate a structured ownership chart when the chain cannot be understood from a single reliable source. Show intermediate entities, ownership or control indicators, jurisdiction, evidence source, and verification date.\nAssess voting, appointment, contractual, and practical control where relevant. A numerical ownership threshold is not a complete legal test; apply jurisdiction-approved criteria and escalate complex or opaque structures.\nCompare customer information against approved registry, formation, constitutive, or other reliable evidence. Record discrepancies and how each was resolved.\nFor trusts or comparable arrangements, identify relevant parties under approved local rules, which may include settlor, trustees, protector, beneficiaries or class, and other persons exercising effective control.\nIf ownership cannot be reliably established, record searches performed, sources, remaining uncertainty, and rationale. Escalate before activation if a required person cannot be identified or uncertainty is material. A fallback is not an informal shortcut.\n6. Purpose, expected activity, and risk assessment\nDocument the relationship purpose and requested products and services. Capture expected transaction types, an activity profile, relevant counterparties or geographies when justified, delivery channel, and source-of-funds or source-of-wealth information when required by risk and approved procedure.\nAssign risk using the institution's approved methodology, not an undocumented personal judgment. The methodology defines inputs, rules or weighting, rating bands, overrides, approval authority, and minimum monitoring. Consider relevant customer, ownership, product, service, geography, channel, activity, and external-information factors.\nHigher-risk indicators trigger analysis and any required enhanced due diligence; they do not alone establish wrongdoing or justify discriminatory treatment.\nA lower-risk rating requires complete mandatory checks and documented reasons. It cannot waive identification, screening, or recordkeeping requirements.\nDocument conflicting indicators, the weight applied, evidence, override rationale, prior and new rating, approver, date, and any compensating monitoring.\nAssign an accountable owner and review trigger. Reassess when ownership, activity, product use, geography, screening, adverse information, or other material circumstances change or observed activity no longer fits the customer profile.\n7. Screening and potential matches\nScreen the customer and relevant associated persons at the points defined by approved procedures against applicable sanctions, politically exposed person (PEP), and other risk-screening sources. Procedures define list coverage and refresh, matching configuration, data, escalation, limitations, and system ownership.\nA potential match is not automatically a confirmed match. A trained reviewer compares identifiers and disambiguating information, considers conflicting evidence, and records the disposition and rationale. Do not clear a plausible match solely because a name differs when other identifiers are consistent or unavailable.\nImmediately escalate a potential sanctions match to the designated Sanctions function. Until resolved, do not take a step that could be prohibited or frustrate a lawful restriction; do not alert the customer where prohibited.\nFor a PEP or other elevated-risk match, establish role and status using reliable sources, assess associated persons where required, apply approved enhanced review and senior approval, and set a monitoring plan.\nRecord run time, data sources and list version where available, identifiers, system or case reference, outcome, reviewer, rationale, restrictions, and follow-up.\nTools support rather than replace resolution of ambiguous cases. Data quality, false-negative risk, list updates, rule changes, and unresolved queues require oversight and periodic testing.\n8. Enhanced due diligence\nApply enhanced due diligence (EDD) when required by law or the approved risk methodology. Record the trigger, measures, evidence, reviewer, decision, and monitoring plan. Measures must be proportionate but cannot fall below legal requirements.\nObtain and assess additional information about the customer, beneficial owners, purpose, expected activity, source of funds, and, where appropriate, source of wealth. Explain why evidence is credible, relevant, and sufficient.\nUse additional independent corroboration, senior approval, increased review frequency, monitoring attention, or product restrictions where the approved methodology requires them.\nFor opaque ownership, document every layer and explain how ultimate owners and controllers were established. Escalate unexplained nominee or control arrangements to Compliance and Legal.\nFor adverse information, assess source reliability and recency, identity match, nature and relevance, and corroboration. Distinguish allegation from verified fact.\nThe designated authority decides whether to accept, restrict, continue, or decline the relationship. Approval records conditions, rationale, accountable owner, expiry or review trigger, and evidence needed to demonstrate operation.\n9. Digital and remote onboarding\nRemote channels provide identity assurance proportionate to channel risk. Before release, the channel owner documents the assurance method, liveness or impersonation protections where applicable, device and session controls, data dependencies, accessible alternatives, evidence retained, and exception handling.\nUse approved identity services and verify that results relate to the person or entity being onboarded. Record result and reference, not secret credentials or unnecessary authentication artifacts.\nAssess synthetic or manipulated evidence, impersonation, account takeover, duplicate identities, automated abuse, and compromised contact channels under the approved threat assessment.\nRoute failed verification to an approved alternative of equivalent assurance or a reasoned decision. A timeout or partial response is not a successful check.\nTest handoffs so an applicant cannot activate through an error state, retry loop, unsupported channel, or incomplete response.\nChanges to identity vendors, matching thresholds, data sources, and decision logic require change control, privacy and security review, testing, and monitoring of failures, overrides, suspected fraud, and customer impact.\n10. Ongoing monitoring and refresh\nMaintain a credible understanding of the relationship. Relevant monitoring teams compare activity with the expected profile and investigate material unexplained deviations under the separately approved transaction-monitoring procedure.\nRefresh frequency is set by applicable law and the institution's approved risk model; this example specifies no universal statutory interval. The case system records a review trigger or date, owner, required evidence, and status.\nInitiate event-driven review for material ownership or control changes, new products or channels, changed geography or activity, significant adverse information, screening alerts, returned communications, or an authorized control-function request.\nRefresh verifies required fields and evidence, re-assesses ownership where relevant, re-runs required screening, compares activity with the expected profile, and updates risk rating and monitoring.\nMake overdue reviews visible to managers. Assess risk, assign recovery date, apply only approved interim controls, and escalate overdue high-risk cases.\nClose a review with dated reviewer decision, updated profile, disposition of alerts and discrepancies, risk rationale, next trigger, and follow-up actions. A 'no change' outcome still requires evidence.\n11. Incomplete cases, restriction, and exit\nDo not activate while mandatory identity, ownership, screening, or approval requirements remain unresolved. Record hold reason, owner, permitted activities if any, customer-communication status, next action, and review date.\nIf due diligence cannot be completed, the designated authority decides whether to decline, limit, suspend, or terminate under applicable law and policy. Do not promise access or disclose confidential screening rationale.\nRestrictions are specific, authorized, technically enforceable where relevant, reviewable, communicated only to permitted recipients, and monitored.\nEscalate suspected suspicious activity through the separate confidential reporting channel. Staff do not investigate beyond their role or notify the customer of a protected report.\nAn exit record includes decision maker, legal and customer-impact assessment, outstanding obligations, treatment of funds under applicable rules, communications, access revocation, retention, and continuing duties.\n12. Privacy, security, and retention\nCollect only information necessary for a defined and lawful KYC purpose. Provide required notices, support access and correction processes, apply approved retention and deletion schedules, and record the purpose and basis under the institution's privacy framework.\nUse approved repositories with role-based access, strong authentication, protected transport and storage, logging, backup, and controlled export. Never put identity evidence or sensitive customer data in personal drives, chat, source code, or unapproved AI services.\nLink source evidence, extracted attributes, decisions, screening dispositions, approvals, and change history to a case. Distinguish a customer assertion from independently verified information.\nRecord provenance, collection and verification dates, source reliability, transformations, and limitations. Amend records traceably instead of overwriting prior decision evidence.\nUse the approved jurisdictional retention schedule and legal holds. This template invents no retention period. Securely dispose of records at expiry unless law requires continued retention.\nReport suspected loss, disclosure, unauthorized access, or integrity failure immediately through security and privacy incident processes; record containment, assessment, notifications, and remediation.\n13. Third parties and dependencies\nAssess providers of identity verification, screening, document processing, registry lookup, or workflow support before use and throughout the service. The internal owner documents data access, subcontractors, locations, resilience, incident handling, assurance, exit, and known limitations.\nDefine decisions that remain internal, how third-party results are challenged, how evidence remains accessible, and how errors are escalated. Outsourcing does not transfer accountability for KYC decisions.\nMonitor critical interfaces for stale or dropped responses, duplicates, and partial completion. Test reconciliation and fallback; subject material provider and service changes to approved change control.\n14. Exceptions, overrides, and issues\nAllow an exception only when law permits, approved policy defines a route, and the specified authority approves before action. Urgency, a system failure, commercial targets, or staffing gaps do not justify bypassing controls.\nRecord control affected, facts and evidence, reason, legal or policy basis, risk assessment, compensating controls, approver, owner, start and expiry, customer impact, and closure evidence.\nNever use an exception to waive a prohibited relationship, confirmed sanctions restriction, or legally mandatory check. Refer uncertainty to Legal and Compliance before action.\nLog control defects, overdue reviews, repeated overrides, and failed evidence checks with severity, owner, due date, interim protection, root cause, and independent closure validation.\nCompliance reviews exception trends at least quarterly as an internal demonstration governance target. This target is not a statutory deadline; governance may approve a different cadence.\n15. Quality assurance and management information\nFirst-line managers perform documented, risk-based quality checks. Compliance independently tests design and operation. Record population, sample rationale, reviewer competence, evidence, limitations, findings, and remediation.\nTesting covers customer type, required attributes, source reliability, verification, ownership analysis, screening resolution, risk rationale, approval authority, monitoring assignment, privacy, and retrievable evidence.\nUseful indicators include incomplete onboarding holds, aging open cases, overdue reviews by risk, unresolved potential matches, EDD approvals, evidence defects, repeated overrides, test failures, and remediation age.\nDefine each metric's owner, source, calculation, denominator, frequency, threshold, and data-quality check. Low counts alone do not prove effective control.\nEscalate high-severity findings under issue management. Closure requires evidence, independent validation proportionate to severity, and authorized residual-risk acceptance.\n16. Training and conduct\nProvide role-specific initial and periodic training on workflow, evidence, escalation, privacy, secure handling, match disposition, communication, and controls against bypass. Record completion and assessment.\nManagers provide current procedures and job aids. Material changes trigger targeted communication or training before staff perform changed tasks.\nStaff document decisions contemporaneously, declare conflicts, protect confidential information, and raise concerns. Refer deliberate falsification, unauthorized override, or prohibited disclosure through the applicable conduct process.\n17. Minimum case record\nThe approved repository must allow an independent reviewer to reconstruct the decision. Include, as applicable:\nCase and customer identifiers, customer type, product and channel, owner, dates, status, and workflow version.\nCustomer information, source evidence, verification method and result, provenance, reviewer, and unresolved discrepancies.\nOwnership and control structure, identified parties, sources, reasoning, and verification date.\nPurpose and expected activity, risk factors, rating and rationale, overrides, EDD, approver, and monitoring plan.\nScreening sources and dates, match evidence, disposition rationale, escalation, and restrictions.\nApprovals, exceptions, permitted communications, review triggers, actions, closure evidence, and links to related incidents or issues.\nRecords are searchable to authorized reviewers, protected from unauthorized changes, and exportable for lawful examination. Log access and amendments. This minimum supplements local requirements.\n18. Implementation and change control\nBefore operational adoption, obtain jurisdiction-specific Legal and Compliance review; map obligations to procedures, systems, evidence, controls, and owners; validate thresholds and review intervals; approve privacy and retention rules; and obtain required governance sign-off.\nThe implementation plan names gaps, owners, milestones, dependencies, training, configuration, testing, cutover approval, and post-release monitoring. A document or setting alone does not prove effective operation.\nReview at least annually as an internal governance target and after material regulatory change, audit finding, incident, product or channel change, or change in risk appetite. This target is not statutory.\nEvery amendment records version, author, reviewer, approver, effective date, change summary, affected controls, implementation evidence, and superseded version. Clearly mark obsolete copies.\nAppendix A. Risk-factor prompts\nThese prompts support analysis but are not an exhaustive scoring model and do not replace approved methodology.\nCustomer and ownership: complexity, opacity, nominees, unexplained control, ownership changes, inconsistent registry details, or difficulty identifying relevant persons.\nProduct and service: cash-intensive or complex features, rapid movement of value, cross-border capability, anonymity, third-party access, or higher-risk use cases.\nGeography and channel: relevant jurisdictional exposure, delivery method, intermediaries, identity assurance, and independent corroboration.\nActivity and context: unexplained divergence from expected use, unusual counterparties, velocity or volume, repeated failures, verified adverse information, or credible fraud indicators.\nRecord only relevant, lawfully usable factors, supporting evidence, decision rule, contradictory evidence, and why the final rating is proportionate.\nAppendix B. Demonstration control-to-evidence map\nIdentity established: approved attributes, evidence reference, method, result, date, and operator.\nOwnership understood: structure, relevant control persons, evidence source, verification date, and rationale.\nRisk assessed: methodology version, factors, rating, reviewer, override, and EDD decision.\nScreening resolved: source and run, disposition, reviewer rationale, escalation, and restrictions.\nOngoing oversight active: named owner, next trigger, monitoring plan, open action, and overdue escalation.\nData protected: authorized logged access, retention assignment, traceable amendments and exports, and known incident route.",
+    "quality": "docx",
+    "words": 2901,
+    "sections": [
+      {
+        "heading": "1. Status, purpose, and authority",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "This detailed internal demonstration standard describes a risk-based control framework for identifying customers, understanding ownership and control, screening relevant parties, assessing risk, and maintaining customer records throughout a relationship."
+          },
+          {
+            "type": "paragraph",
+            "text": "This is fictional sample content for the Regula demonstration repository. It is not an actual regulation, legal opinion, or approved bank policy. It states no statutory threshold, mandatory deadline, or universal retention period. Compliance and Legal must validate applicable laws and obtain formal approval before operational adoption."
+          },
+          {
+            "type": "paragraph",
+            "text": "Applicable law and formally approved higher-level policies prevail. Staff record and escalate conflicts instead of resolving them by informal interpretation. The owner maintains a jurisdictional addendum identifying applicable requirements, approved evidence, decision authorities, and local procedures."
+          }
+        ]
+      },
+      {
+        "heading": "2. Scope and objectives",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The standard covers customer onboarding, product and account activation, material changes, periodic refresh, event-driven review, restrictions, and relationship exit. It applies to individuals, sole proprietors, companies, partnerships, trusts and comparable arrangements, public bodies, and people acting through representatives, subject to locally approved procedures."
+          },
+          {
+            "type": "paragraph",
+            "text": "It applies to employees and relevant contractors in Relationship Management, Branch and Digital Operations, Compliance, Financial Crime, Sanctions, Fraud, Data Protection, Technology, Product, and Internal Audit. Outsourcing a task does not transfer institutional accountability for the decision or oversight."
+          },
+          {
+            "type": "bullet",
+            "text": "Establish and verify identity using approved evidence and methods."
+          },
+          {
+            "type": "bullet",
+            "text": "Understand legal-entity ownership, beneficial ownership, control, and representative authority to the level required."
+          },
+          {
+            "type": "bullet",
+            "text": "Understand relationship purpose and expected activity, assign a supported risk rating, and apply proportionate controls."
+          },
+          {
+            "type": "bullet",
+            "text": "Prevent activation while material required checks or approvals remain unresolved; maintain an auditable record and protect customer information."
+          }
+        ]
+      },
+      {
+        "heading": "3. Governance and accountability",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The Board or delegated risk committee approves risk appetite and receives material control reporting. The executive accountable for Financial Crime ensures the framework is resourced. Compliance owns this standard, interprets internal requirements with Legal, maintains procedures and decision criteria, and monitors adherence."
+          },
+          {
+            "type": "bullet",
+            "text": "Business and product owners ensure KYC controls are designed into customer journeys and reviewed before a new product, channel, or material change is released."
+          },
+          {
+            "type": "bullet",
+            "text": "The onboarding analyst collects information, performs assigned checks, assesses evidence quality, records results, and escalates discrepancies. Analysts do not approve their own elevated-risk exceptions."
+          },
+          {
+            "type": "bullet",
+            "text": "A designated reviewer challenges completeness, evidence, risk rationale, and authority. Elevated-risk acceptance requires the specific senior approval defined in the institution's approved risk appetite."
+          },
+          {
+            "type": "bullet",
+            "text": "Relationship owners maintain customer information and respond to refresh requests. Operations maintains workflow controls. Technology protects systems, access, interfaces, logs, and data quality."
+          },
+          {
+            "type": "bullet",
+            "text": "Data Protection advises on lawful and proportionate handling; Legal advises on local law and conflicts; Internal Audit independently tests controls without owning them."
+          },
+          {
+            "type": "paragraph",
+            "text": "A separately approved authority matrix identifies who can assign risk, approve elevated-risk relationships and exceptions, restrict activity, and authorize closure. Delegations are recorded, conflict-checked, and time-bounded where appropriate."
+          }
+        ]
+      },
+      {
+        "heading": "4. Customer identification and verification",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before activation, establish identity using the institution's approved evidence list for the customer type and channel. The list specifies acceptable sources, required attributes, verification method, freshness and authenticity checks, limitations, and an alternative route when standard evidence is unavailable."
+          },
+          {
+            "type": "bullet",
+            "text": "For individuals, capture approved identifying attributes such as legal name and relevant variations, date of birth or another distinguishing attribute, address where required, and reliable contact details."
+          },
+          {
+            "type": "bullet",
+            "text": "For entities, capture legal name, registration or equivalent identifier, legal form, formation jurisdiction and date where available, registered and operating addresses, business activity, and status using reliable evidence where available."
+          },
+          {
+            "type": "bullet",
+            "text": "For public bodies or comparable customers, record classification basis, establishing authority, representative, and locally required evidence or approvals."
+          },
+          {
+            "type": "bullet",
+            "text": "For an agent, guardian, or other representative, verify identity and authority. Record the mandate source, scope, effective date, and expiry or revocation conditions."
+          },
+          {
+            "type": "paragraph",
+            "text": "Where required and available, corroborate customer-supplied information with a reliable independent source. Record attributes checked, source, date, method, result, operator, and limitations. A document image alone does not establish authenticity unless an approved method supports that conclusion."
+          },
+          {
+            "type": "paragraph",
+            "text": "Pause the affected workflow when evidence is inconsistent, expired, altered, unverifiable, or materially incomplete. A reviewer determines whether an approved alternative resolves the issue. Never invent or silently normalize missing identity information."
+          }
+        ]
+      },
+      {
+        "heading": "5. Legal entities, beneficial ownership, and control",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Establish ownership and control to the level required by applicable law and the approved risk-based procedure. Distinguish direct owners, indirect owners, beneficial owners, persons exercising control, any legally permitted senior-managing-official fallback, and authorized representatives. Record the basis for identifying each person."
+          },
+          {
+            "type": "bullet",
+            "text": "Create a structured ownership chart when the chain cannot be understood from a single reliable source. Show intermediate entities, ownership or control indicators, jurisdiction, evidence source, and verification date."
+          },
+          {
+            "type": "bullet",
+            "text": "Assess voting, appointment, contractual, and practical control where relevant. A numerical ownership threshold is not a complete legal test; apply jurisdiction-approved criteria and escalate complex or opaque structures."
+          },
+          {
+            "type": "bullet",
+            "text": "Compare customer information against approved registry, formation, constitutive, or other reliable evidence. Record discrepancies and how each was resolved."
+          },
+          {
+            "type": "bullet",
+            "text": "For trusts or comparable arrangements, identify relevant parties under approved local rules, which may include settlor, trustees, protector, beneficiaries or class, and other persons exercising effective control."
+          },
+          {
+            "type": "paragraph",
+            "text": "If ownership cannot be reliably established, record searches performed, sources, remaining uncertainty, and rationale. Escalate before activation if a required person cannot be identified or uncertainty is material. A fallback is not an informal shortcut."
+          }
+        ]
+      },
+      {
+        "heading": "6. Purpose, expected activity, and risk assessment",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Document the relationship purpose and requested products and services. Capture expected transaction types, an activity profile, relevant counterparties or geographies when justified, delivery channel, and source-of-funds or source-of-wealth information when required by risk and approved procedure."
+          },
+          {
+            "type": "paragraph",
+            "text": "Assign risk using the institution's approved methodology, not an undocumented personal judgment. The methodology defines inputs, rules or weighting, rating bands, overrides, approval authority, and minimum monitoring. Consider relevant customer, ownership, product, service, geography, channel, activity, and external-information factors."
+          },
+          {
+            "type": "bullet",
+            "text": "Higher-risk indicators trigger analysis and any required enhanced due diligence; they do not alone establish wrongdoing or justify discriminatory treatment."
+          },
+          {
+            "type": "bullet",
+            "text": "A lower-risk rating requires complete mandatory checks and documented reasons. It cannot waive identification, screening, or recordkeeping requirements."
+          },
+          {
+            "type": "bullet",
+            "text": "Document conflicting indicators, the weight applied, evidence, override rationale, prior and new rating, approver, date, and any compensating monitoring."
+          },
+          {
+            "type": "paragraph",
+            "text": "Assign an accountable owner and review trigger. Reassess when ownership, activity, product use, geography, screening, adverse information, or other material circumstances change or observed activity no longer fits the customer profile."
+          }
+        ]
+      },
+      {
+        "heading": "7. Screening and potential matches",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Screen the customer and relevant associated persons at the points defined by approved procedures against applicable sanctions, politically exposed person (PEP), and other risk-screening sources. Procedures define list coverage and refresh, matching configuration, data, escalation, limitations, and system ownership."
+          },
+          {
+            "type": "paragraph",
+            "text": "A potential match is not automatically a confirmed match. A trained reviewer compares identifiers and disambiguating information, considers conflicting evidence, and records the disposition and rationale. Do not clear a plausible match solely because a name differs when other identifiers are consistent or unavailable."
+          },
+          {
+            "type": "bullet",
+            "text": "Immediately escalate a potential sanctions match to the designated Sanctions function. Until resolved, do not take a step that could be prohibited or frustrate a lawful restriction; do not alert the customer where prohibited."
+          },
+          {
+            "type": "bullet",
+            "text": "For a PEP or other elevated-risk match, establish role and status using reliable sources, assess associated persons where required, apply approved enhanced review and senior approval, and set a monitoring plan."
+          },
+          {
+            "type": "bullet",
+            "text": "Record run time, data sources and list version where available, identifiers, system or case reference, outcome, reviewer, rationale, restrictions, and follow-up."
+          },
+          {
+            "type": "paragraph",
+            "text": "Tools support rather than replace resolution of ambiguous cases. Data quality, false-negative risk, list updates, rule changes, and unresolved queues require oversight and periodic testing."
+          }
+        ]
+      },
+      {
+        "heading": "8. Enhanced due diligence",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Apply enhanced due diligence (EDD) when required by law or the approved risk methodology. Record the trigger, measures, evidence, reviewer, decision, and monitoring plan. Measures must be proportionate but cannot fall below legal requirements."
+          },
+          {
+            "type": "bullet",
+            "text": "Obtain and assess additional information about the customer, beneficial owners, purpose, expected activity, source of funds, and, where appropriate, source of wealth. Explain why evidence is credible, relevant, and sufficient."
+          },
+          {
+            "type": "bullet",
+            "text": "Use additional independent corroboration, senior approval, increased review frequency, monitoring attention, or product restrictions where the approved methodology requires them."
+          },
+          {
+            "type": "bullet",
+            "text": "For opaque ownership, document every layer and explain how ultimate owners and controllers were established. Escalate unexplained nominee or control arrangements to Compliance and Legal."
+          },
+          {
+            "type": "bullet",
+            "text": "For adverse information, assess source reliability and recency, identity match, nature and relevance, and corroboration. Distinguish allegation from verified fact."
+          },
+          {
+            "type": "paragraph",
+            "text": "The designated authority decides whether to accept, restrict, continue, or decline the relationship. Approval records conditions, rationale, accountable owner, expiry or review trigger, and evidence needed to demonstrate operation."
+          }
+        ]
+      },
+      {
+        "heading": "9. Digital and remote onboarding",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Remote channels provide identity assurance proportionate to channel risk. Before release, the channel owner documents the assurance method, liveness or impersonation protections where applicable, device and session controls, data dependencies, accessible alternatives, evidence retained, and exception handling."
+          },
+          {
+            "type": "bullet",
+            "text": "Use approved identity services and verify that results relate to the person or entity being onboarded. Record result and reference, not secret credentials or unnecessary authentication artifacts."
+          },
+          {
+            "type": "bullet",
+            "text": "Assess synthetic or manipulated evidence, impersonation, account takeover, duplicate identities, automated abuse, and compromised contact channels under the approved threat assessment."
+          },
+          {
+            "type": "bullet",
+            "text": "Route failed verification to an approved alternative of equivalent assurance or a reasoned decision. A timeout or partial response is not a successful check."
+          },
+          {
+            "type": "bullet",
+            "text": "Test handoffs so an applicant cannot activate through an error state, retry loop, unsupported channel, or incomplete response."
+          },
+          {
+            "type": "paragraph",
+            "text": "Changes to identity vendors, matching thresholds, data sources, and decision logic require change control, privacy and security review, testing, and monitoring of failures, overrides, suspected fraud, and customer impact."
+          }
+        ]
+      },
+      {
+        "heading": "10. Ongoing monitoring and refresh",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Maintain a credible understanding of the relationship. Relevant monitoring teams compare activity with the expected profile and investigate material unexplained deviations under the separately approved transaction-monitoring procedure."
+          },
+          {
+            "type": "paragraph",
+            "text": "Refresh frequency is set by applicable law and the institution's approved risk model; this example specifies no universal statutory interval. The case system records a review trigger or date, owner, required evidence, and status."
+          },
+          {
+            "type": "bullet",
+            "text": "Initiate event-driven review for material ownership or control changes, new products or channels, changed geography or activity, significant adverse information, screening alerts, returned communications, or an authorized control-function request."
+          },
+          {
+            "type": "bullet",
+            "text": "Refresh verifies required fields and evidence, re-assesses ownership where relevant, re-runs required screening, compares activity with the expected profile, and updates risk rating and monitoring."
+          },
+          {
+            "type": "bullet",
+            "text": "Make overdue reviews visible to managers. Assess risk, assign recovery date, apply only approved interim controls, and escalate overdue high-risk cases."
+          },
+          {
+            "type": "paragraph",
+            "text": "Close a review with dated reviewer decision, updated profile, disposition of alerts and discrepancies, risk rationale, next trigger, and follow-up actions. A 'no change' outcome still requires evidence."
+          }
+        ]
+      },
+      {
+        "heading": "11. Incomplete cases, restriction, and exit",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Do not activate while mandatory identity, ownership, screening, or approval requirements remain unresolved. Record hold reason, owner, permitted activities if any, customer-communication status, next action, and review date."
+          },
+          {
+            "type": "paragraph",
+            "text": "If due diligence cannot be completed, the designated authority decides whether to decline, limit, suspend, or terminate under applicable law and policy. Do not promise access or disclose confidential screening rationale."
+          },
+          {
+            "type": "bullet",
+            "text": "Restrictions are specific, authorized, technically enforceable where relevant, reviewable, communicated only to permitted recipients, and monitored."
+          },
+          {
+            "type": "bullet",
+            "text": "Escalate suspected suspicious activity through the separate confidential reporting channel. Staff do not investigate beyond their role or notify the customer of a protected report."
+          },
+          {
+            "type": "paragraph",
+            "text": "An exit record includes decision maker, legal and customer-impact assessment, outstanding obligations, treatment of funds under applicable rules, communications, access revocation, retention, and continuing duties."
+          }
+        ]
+      },
+      {
+        "heading": "12. Privacy, security, and retention",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Collect only information necessary for a defined and lawful KYC purpose. Provide required notices, support access and correction processes, apply approved retention and deletion schedules, and record the purpose and basis under the institution's privacy framework."
+          },
+          {
+            "type": "bullet",
+            "text": "Use approved repositories with role-based access, strong authentication, protected transport and storage, logging, backup, and controlled export. Never put identity evidence or sensitive customer data in personal drives, chat, source code, or unapproved AI services."
+          },
+          {
+            "type": "bullet",
+            "text": "Link source evidence, extracted attributes, decisions, screening dispositions, approvals, and change history to a case. Distinguish a customer assertion from independently verified information."
+          },
+          {
+            "type": "bullet",
+            "text": "Record provenance, collection and verification dates, source reliability, transformations, and limitations. Amend records traceably instead of overwriting prior decision evidence."
+          },
+          {
+            "type": "bullet",
+            "text": "Use the approved jurisdictional retention schedule and legal holds. This template invents no retention period. Securely dispose of records at expiry unless law requires continued retention."
+          },
+          {
+            "type": "paragraph",
+            "text": "Report suspected loss, disclosure, unauthorized access, or integrity failure immediately through security and privacy incident processes; record containment, assessment, notifications, and remediation."
+          }
+        ]
+      },
+      {
+        "heading": "13. Third parties and dependencies",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Assess providers of identity verification, screening, document processing, registry lookup, or workflow support before use and throughout the service. The internal owner documents data access, subcontractors, locations, resilience, incident handling, assurance, exit, and known limitations."
+          },
+          {
+            "type": "paragraph",
+            "text": "Define decisions that remain internal, how third-party results are challenged, how evidence remains accessible, and how errors are escalated. Outsourcing does not transfer accountability for KYC decisions."
+          },
+          {
+            "type": "paragraph",
+            "text": "Monitor critical interfaces for stale or dropped responses, duplicates, and partial completion. Test reconciliation and fallback; subject material provider and service changes to approved change control."
+          }
+        ]
+      },
+      {
+        "heading": "14. Exceptions, overrides, and issues",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Allow an exception only when law permits, approved policy defines a route, and the specified authority approves before action. Urgency, a system failure, commercial targets, or staffing gaps do not justify bypassing controls."
+          },
+          {
+            "type": "bullet",
+            "text": "Record control affected, facts and evidence, reason, legal or policy basis, risk assessment, compensating controls, approver, owner, start and expiry, customer impact, and closure evidence."
+          },
+          {
+            "type": "bullet",
+            "text": "Never use an exception to waive a prohibited relationship, confirmed sanctions restriction, or legally mandatory check. Refer uncertainty to Legal and Compliance before action."
+          },
+          {
+            "type": "bullet",
+            "text": "Log control defects, overdue reviews, repeated overrides, and failed evidence checks with severity, owner, due date, interim protection, root cause, and independent closure validation."
+          },
+          {
+            "type": "paragraph",
+            "text": "Compliance reviews exception trends at least quarterly as an internal demonstration governance target. This target is not a statutory deadline; governance may approve a different cadence."
+          }
+        ]
+      },
+      {
+        "heading": "15. Quality assurance and management information",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "First-line managers perform documented, risk-based quality checks. Compliance independently tests design and operation. Record population, sample rationale, reviewer competence, evidence, limitations, findings, and remediation."
+          },
+          {
+            "type": "paragraph",
+            "text": "Testing covers customer type, required attributes, source reliability, verification, ownership analysis, screening resolution, risk rationale, approval authority, monitoring assignment, privacy, and retrievable evidence."
+          },
+          {
+            "type": "bullet",
+            "text": "Useful indicators include incomplete onboarding holds, aging open cases, overdue reviews by risk, unresolved potential matches, EDD approvals, evidence defects, repeated overrides, test failures, and remediation age."
+          },
+          {
+            "type": "bullet",
+            "text": "Define each metric's owner, source, calculation, denominator, frequency, threshold, and data-quality check. Low counts alone do not prove effective control."
+          },
+          {
+            "type": "paragraph",
+            "text": "Escalate high-severity findings under issue management. Closure requires evidence, independent validation proportionate to severity, and authorized residual-risk acceptance."
+          }
+        ]
+      },
+      {
+        "heading": "16. Training and conduct",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Provide role-specific initial and periodic training on workflow, evidence, escalation, privacy, secure handling, match disposition, communication, and controls against bypass. Record completion and assessment."
+          },
+          {
+            "type": "paragraph",
+            "text": "Managers provide current procedures and job aids. Material changes trigger targeted communication or training before staff perform changed tasks."
+          },
+          {
+            "type": "paragraph",
+            "text": "Staff document decisions contemporaneously, declare conflicts, protect confidential information, and raise concerns. Refer deliberate falsification, unauthorized override, or prohibited disclosure through the applicable conduct process."
+          }
+        ]
+      },
+      {
+        "heading": "17. Minimum case record",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The approved repository must allow an independent reviewer to reconstruct the decision. Include, as applicable:"
+          },
+          {
+            "type": "bullet",
+            "text": "Case and customer identifiers, customer type, product and channel, owner, dates, status, and workflow version."
+          },
+          {
+            "type": "bullet",
+            "text": "Customer information, source evidence, verification method and result, provenance, reviewer, and unresolved discrepancies."
+          },
+          {
+            "type": "bullet",
+            "text": "Ownership and control structure, identified parties, sources, reasoning, and verification date."
+          },
+          {
+            "type": "bullet",
+            "text": "Purpose and expected activity, risk factors, rating and rationale, overrides, EDD, approver, and monitoring plan."
+          },
+          {
+            "type": "bullet",
+            "text": "Screening sources and dates, match evidence, disposition rationale, escalation, and restrictions."
+          },
+          {
+            "type": "bullet",
+            "text": "Approvals, exceptions, permitted communications, review triggers, actions, closure evidence, and links to related incidents or issues."
+          },
+          {
+            "type": "paragraph",
+            "text": "Records are searchable to authorized reviewers, protected from unauthorized changes, and exportable for lawful examination. Log access and amendments. This minimum supplements local requirements."
+          }
+        ]
+      },
+      {
+        "heading": "18. Implementation and change control",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before operational adoption, obtain jurisdiction-specific Legal and Compliance review; map obligations to procedures, systems, evidence, controls, and owners; validate thresholds and review intervals; approve privacy and retention rules; and obtain required governance sign-off."
+          },
+          {
+            "type": "paragraph",
+            "text": "The implementation plan names gaps, owners, milestones, dependencies, training, configuration, testing, cutover approval, and post-release monitoring. A document or setting alone does not prove effective operation."
+          },
+          {
+            "type": "paragraph",
+            "text": "Review at least annually as an internal governance target and after material regulatory change, audit finding, incident, product or channel change, or change in risk appetite. This target is not statutory."
+          },
+          {
+            "type": "paragraph",
+            "text": "Every amendment records version, author, reviewer, approver, effective date, change summary, affected controls, implementation evidence, and superseded version. Clearly mark obsolete copies."
+          }
+        ]
+      },
+      {
+        "heading": "Appendix A. Risk-factor prompts",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "These prompts support analysis but are not an exhaustive scoring model and do not replace approved methodology."
+          },
+          {
+            "type": "bullet",
+            "text": "Customer and ownership: complexity, opacity, nominees, unexplained control, ownership changes, inconsistent registry details, or difficulty identifying relevant persons."
+          },
+          {
+            "type": "bullet",
+            "text": "Product and service: cash-intensive or complex features, rapid movement of value, cross-border capability, anonymity, third-party access, or higher-risk use cases."
+          },
+          {
+            "type": "bullet",
+            "text": "Geography and channel: relevant jurisdictional exposure, delivery method, intermediaries, identity assurance, and independent corroboration."
+          },
+          {
+            "type": "bullet",
+            "text": "Activity and context: unexplained divergence from expected use, unusual counterparties, velocity or volume, repeated failures, verified adverse information, or credible fraud indicators."
+          },
+          {
+            "type": "paragraph",
+            "text": "Record only relevant, lawfully usable factors, supporting evidence, decision rule, contradictory evidence, and why the final rating is proportionate."
+          }
+        ]
+      },
+      {
+        "heading": "Appendix B. Demonstration control-to-evidence map",
+        "blocks": [
+          {
+            "type": "bullet",
+            "text": "Identity established: approved attributes, evidence reference, method, result, date, and operator."
+          },
+          {
+            "type": "bullet",
+            "text": "Ownership understood: structure, relevant control persons, evidence source, verification date, and rationale."
+          },
+          {
+            "type": "bullet",
+            "text": "Risk assessed: methodology version, factors, rating, reviewer, override, and EDD decision."
+          },
+          {
+            "type": "bullet",
+            "text": "Screening resolved: source and run, disposition, reviewer rationale, escalation, and restrictions."
+          },
+          {
+            "type": "bullet",
+            "text": "Ongoing oversight active: named owner, next trigger, monitoring plan, open action, and overdue escalation."
+          },
+          {
+            "type": "bullet",
+            "text": "Data protected: authorized logged access, retention assignment, traceable amendments and exports, and known incident route."
+          }
+        ]
+      }
+    ]
+  }
+}

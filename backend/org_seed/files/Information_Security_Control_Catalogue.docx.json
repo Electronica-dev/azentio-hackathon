@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "seed-control-catalogue",
+  "filename": "Information_Security_Control_Catalogue.docx",
+  "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "sha256": "6a5275d2db15d3627c43bc3b0043b7bcf7c0dd35e2082431003f6c0d92f42cc4",
+  "metadata": {
+    "title": "Information Security Control Catalogue",
+    "category": "control_catalogue",
+    "department": "Technology",
+    "owner": "Ravi Iyer",
+    "version": "1.0",
+    "review_date": "2027-02-28",
+    "uploaded": "2026-10-31T18:12:50",
+    "uploaded_by": "Regula demonstration seed"
+  },
+  "content": {
+    "text": "Information Security Control Catalogue\nINTERNAL DEMONSTRATION TEMPLATE - NOT APPROVED FOR OPERATIONAL USE\nOwner: Ravi Iyer | Department: Technology\nVersion: 1.0 | Next review: 2027-02-28\n1. Control ownership\nEvery control has an accountable owner, an operating team, a frequency, evidence location, and a defined escalation path. Owners attest to operation and report exceptions.\n2. Identity and access\n- Grant access by role and business need using an approved request and independent approval. Privileged access is separately controlled and logged.\n- Review access to critical systems at least quarterly and remove access promptly following role change or departure. Record reviewer, scope, exceptions, and remediation.\n3. Change and configuration\n- Test and approve material changes before production release. Separate development and production duties where feasible; emergency changes receive retrospective review.\n- Maintain an inventory of critical services, owners, environments, dependencies, and recovery requirements. Restrict and monitor configuration changes.\n4. Logging and resilience\n- Record security-relevant activity for critical systems, protect logs from unauthorised change, and review alerts through an assigned process.\n- Test backups and recovery procedures on a scheduled basis. Track recovery gaps and corrective actions to closure.\n5. Evidence and exceptions\nRetain dated evidence showing that each control operated. A control exception must identify the affected service, risk, compensating measure, accountable approver, and expiry date.",
+    "quality": "docx",
+    "words": 215
+  }
+}

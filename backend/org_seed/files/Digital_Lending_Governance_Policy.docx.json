@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "seed-digital-lending",
+  "filename": "Digital_Lending_Governance_Policy.docx",
+  "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "sha256": "d656bd142daf4e62312e59ca9cb64692689fa4b9e3e384bfa516f654df9e5362",
+  "metadata": {
+    "title": "Digital Lending Governance Policy",
+    "category": "ai_governance",
+    "department": "Risk",
+    "owner": "Ravi Iyer",
+    "version": "1.0",
+    "review_date": "2027-05-31",
+    "uploaded": "2026-10-31T18:12:50",
+    "uploaded_by": "Regula demonstration seed"
+  },
+  "content": {
+    "text": "Digital Lending Governance Policy\nINTERNAL DEMONSTRATION TEMPLATE - NOT APPROVED FOR OPERATIONAL USE\nOwner: Ravi Iyer | Department: Risk\nVersion: 1.0 | Next review: 2027-05-31\n1. Purpose and scope\nThis demonstration policy sets governance expectations for digital loan journeys and automated decision support. It is a sample internal control document, not a statement of legal requirements.\n2. Accountability\n- The product owner is accountable for the customer journey, disclosures, and operational controls. Credit Risk owns decision policy and approval thresholds. Technology maintains system inventories, access controls, and change records.\n- Where a statistical or machine-learning model is used, Model Risk independently validates it before material use and on a risk-based schedule.\n3. Customer journey controls\n- Present key product terms, charges, repayment obligations, and required notices clearly before customer acceptance. Retain the version presented and the customer's recorded acknowledgement.\n- Make the application status, decision outcome, and available support channel accessible to the customer. Document and test any assisted or exception path.\n4. Decisioning and monitoring\n- Document input data, decision rules, model version where applicable, approval authority, and tested fallback behaviour. Changes to decision logic follow controlled review and release.\n- Monitor outcomes, overrides, complaints, and service performance for unexpected patterns. Investigate material deviations and record remediation.\n5. Third parties and incidents\n- Inventory service providers involved in origination, identity checks, communications, or servicing. Contract owners monitor access, continuity, incident notification, and exit readiness.\n- Report customer-impacting incidents through the incident process and preserve relevant decision and transaction evidence.",
+    "quality": "docx",
+    "words": 250
+  }
+}
