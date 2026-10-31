@@ -32,7 +32,7 @@ def build_state() -> dict:
     sources, assets, docs, priors = load_seed()
     state: dict = {
         "meta": {
-            "org": "Azentio Bank",
+            "org": "Meridian Bank",
             "product": "Regula",
             "tagline": "Regulatory Change Impact Agent",
             "version": "1.0.0-demo",

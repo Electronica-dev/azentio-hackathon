@@ -9,7 +9,7 @@ The UI reads exactly one document: `GET /api/state`. This is deliberate. One fet
 ```jsonc
 {
   "meta": {
-    "org": "Azentio Bank",
+    "org": "Meridian Bank",
     "product": "Regula",
     "tagline": "Regulatory Change Impact Agent",
     "version": "1.0.0-demo",

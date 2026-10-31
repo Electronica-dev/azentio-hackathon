@@ -150,7 +150,7 @@ for (x, y, r, col), lab in zip(nodes, labels):
 rect(s, 0.85, 0.72, 0.55, 0.55, rgb("132A40"), None, 0.22)
 text(s, "R", 0.85, 0.77, 0.55, 0.45, 22, MINT, True, PP_ALIGN.CENTER)
 text(s, "regula", 1.52, 0.78, 3, 0.42, 21, WHITE, True)
-text(s, "by Azentio Bank", 1.54, 1.12, 3, 0.22, 8.5, rgb("7F98AD"))
+text(s, "by Meridian Bank", 1.54, 1.12, 3, 0.22, 8.5, rgb("7F98AD"))
 
 text(s, "AZENTIO.AI  BUILD LABS  ·  CHALLENGE 02", 0.85, 2.0, 8, 0.3, 10, MINT, True)
 text(s, "Regulatory change,\nresolved.", 0.85, 2.4, 8.3, 1.9, 54, WHITE, True, spacing=0.92)
