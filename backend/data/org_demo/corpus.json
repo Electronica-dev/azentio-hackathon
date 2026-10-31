@@ -1,0 +1,168 @@
+{
+  "people": [
+    { "name": "Priya Menon", "email": "priya.menon@meridian.example", "department": "Compliance", "designation": "Chief Compliance Officer" },
+    { "name": "Ananya Gupta", "email": "ananya.gupta@meridian.example", "department": "Compliance", "designation": "KYC Manager" },
+    { "name": "Meera Joshi", "email": "meera.joshi@meridian.example", "department": "Legal", "designation": "Head of Legal" },
+    { "name": "Arjun Rao", "email": "arjun.rao@meridian.example", "department": "Risk", "designation": "Chief Risk Officer" },
+    { "name": "Neha Verma", "email": "neha.verma@meridian.example", "department": "Risk", "designation": "Model Risk Manager" },
+    { "name": "Sneha Kulkarni", "email": "sneha.kulkarni@meridian.example", "department": "Finance", "designation": "Head of Regulatory Reporting" },
+    { "name": "Rohan Iyer", "email": "rohan.iyer@meridian.example", "department": "Business", "designation": "Head of Digital Lending" },
+    { "name": "Kabir Shah", "email": "kabir.shah@meridian.example", "department": "Operations", "designation": "Head of Operations" },
+    { "name": "Vikram Nair", "email": "vikram.nair@meridian.example", "department": "Technology", "designation": "Head of Technology" },
+    { "name": "Dev Patel", "email": "dev.patel@meridian.example", "department": "Technology", "designation": "Integrations Manager" }
+  ],
+  "documents": [
+    {
+      "filename": "kyc-policy.txt",
+      "title": "KYC and Customer Due Diligence Policy",
+      "category": "policy",
+      "department": "Compliance",
+      "owner": "Priya Menon",
+      "version": "v4.2",
+      "sections": [
+        { "ref": "1", "heading": "Purpose and scope", "text": "This policy sets out how Meridian Bank identifies customers, verifies beneficial ownership and maintains KYC records. It applies to every business line and to every customer relationship." },
+        { "ref": "4", "heading": "Customer risk categorisation", "text": "Every customer is categorised as low, medium or high risk at onboarding. High-risk customers are reviewed at least once every twelve months, medium-risk customers at least once every twenty-four months, and low-risk customers at least once every thirty-six months. The risk categorisation is reviewed on the occurrence of a trigger event and in any case not less than once every six months." },
+        { "ref": "12", "heading": "Simplified measures", "text": "The simplified KYC measures for low-risk customers opening accounts with an aggregate balance not exceeding fifty thousand rupees are withdrawn. No account may be opened under that exemption." }
+      ]
+    },
+    {
+      "filename": "customer-identification-sop.txt",
+      "title": "Customer Identification and Beneficial Ownership SOP",
+      "category": "policy",
+      "department": "Compliance",
+      "owner": "Ananya Gupta",
+      "version": "v3.1",
+      "sections": [
+        { "ref": "5", "heading": "Beneficial ownership", "text": "The bank identifies and verifies every beneficial owner before onboarding. A beneficial owner is a natural person who ultimately owns or controls more than ten per cent of the shares, capital or voting rights. Beneficial ownership is refreshed at least annually and on any trigger event." },
+        { "ref": "6", "heading": "PAN and Aadhaar verification", "text": "At onboarding and before every high-value transaction exceeding rupees ten lakh, the bank verifies that the Permanent Account Number is active and linked with Aadhaar." },
+        { "ref": "7", "heading": "Verification failure", "text": "Where verification fails, the bank does not commence or continue the relationship and records the case in the exception register. The Principal Officer reviews the exception register every month." }
+      ]
+    },
+    {
+      "filename": "periodic-updation-procedure.txt",
+      "title": "Periodic Updation of KYC Records Procedure",
+      "category": "process",
+      "department": "Operations",
+      "owner": "Kabir Shah",
+      "version": "v2.4",
+      "sections": [
+        { "ref": "3", "heading": "Updation intervals", "text": "KYC records are updated for high-risk customers at least once every twelve months, medium-risk customers every twenty-four months and low-risk customers every thirty-six months." },
+        { "ref": "4", "heading": "Trigger events", "text": "The risk categorisation of every customer is reviewed on the occurrence of a trigger event and in any case not less than once every six months." }
+      ]
+    },
+    {
+      "filename": "vcip-procedure.txt",
+      "title": "Video KYC (V-CIP) Operating Procedure",
+      "category": "process",
+      "department": "Operations",
+      "owner": "Kabir Shah",
+      "version": "v1.9",
+      "sections": [
+        { "ref": "2", "heading": "Verification controls", "text": "The video based customer identification process includes liveness detection and geo-tagging of the customer location. The video recording is retained for a period of eight years." },
+        { "ref": "3", "heading": "Outsourcing", "text": "The bank does not outsource the liveness detection function to a third party without the prior approval of the Principal Officer." }
+      ]
+    },
+    {
+      "filename": "crilc-exception-reporting.txt",
+      "title": "CRILC KYC Exception Reporting Procedure",
+      "category": "process",
+      "department": "Finance",
+      "owner": "Sneha Kulkarni",
+      "version": "v1.3",
+      "sections": [
+        { "ref": "2", "heading": "Reporting to CRILC", "text": "KYC exception cases, including failed PAN-Aadhaar verification and incomplete beneficial ownership records, are reported to the Central Repository of Information on Large Credits within seven calendar days of identification." }
+      ]
+    },
+    {
+      "filename": "records-retention-schedule.txt",
+      "title": "Records Retention Schedule",
+      "category": "policy",
+      "department": "Legal",
+      "owner": "Meera Joshi",
+      "version": "v5.0",
+      "sections": [
+        { "ref": "2", "heading": "KYC retention period", "text": "KYC records are retained for a period of eight years after the relationship ends. The earlier five year period is superseded." }
+      ]
+    },
+    {
+      "filename": "consent-management-standard.txt",
+      "title": "Customer Consent Management Standard",
+      "category": "policy",
+      "department": "Legal",
+      "owner": "Meera Joshi",
+      "version": "v2.2",
+      "sections": [
+        { "ref": "3", "heading": "Consent for data sharing", "text": "The bank obtains explicit, purpose-bound and revocable consent from the customer before sharing KYC data with any third party, including an account aggregator." },
+        { "ref": "5", "heading": "Basic banking services", "text": "Consent is not obtained as a condition for availing any basic banking service." }
+      ]
+    },
+    {
+      "filename": "digital-lending-policy.txt",
+      "title": "Digital Lending Policy",
+      "category": "policy",
+      "department": "Business",
+      "owner": "Rohan Iyer",
+      "version": "v3.0",
+      "sections": [
+        { "ref": "4", "heading": "Default loss guarantee", "text": "The default loss guarantee provided by a lending service provider is capped at ten per cent of the loan portfolio and applies only where the provider has undergone an annual audit of its recovery practices." },
+        { "ref": "5", "heading": "Key fact statement", "text": "Every borrower receives a key fact statement in English and in the language of the State where the borrower resides, covering the annual percentage rate, total cost of credit, recovery agent details and grievance redressal. The borrower acknowledges receipt explicitly and the acknowledgement is retained for eight years." },
+        { "ref": "6", "heading": "Cooling-off period", "text": "The borrower may exit the loan within seven days by repaying the principal and proportionate interest without penalty." },
+        { "ref": "7", "heading": "Lending service provider reporting", "text": "Onboarding, termination and material ownership changes of a lending service provider are reported to the Credit Information Companies within fifteen calendar days. An annual information security audit is reported to the Board." }
+      ]
+    },
+    {
+      "filename": "cyber-resilience-policy.txt",
+      "title": "Cyber Security and Cyber Resilience Policy",
+      "category": "policy",
+      "department": "Technology",
+      "owner": "Vikram Nair",
+      "version": "v2.6",
+      "sections": [
+        { "ref": "3", "heading": "Security operations", "text": "The bank operates a security operations centre that monitors the environment twenty-four by seven." },
+        { "ref": "4", "heading": "Log retention", "text": "Security logs are retained for one hundred and eighty days." },
+        { "ref": "5", "heading": "Incident reporting", "text": "A cyber incident is reported to the regulator within six hours of detection." },
+        { "ref": "6", "heading": "Third party assessment", "text": "Every third party service provider undergoes a cyber security assessment before onboarding and annually thereafter." }
+      ]
+    },
+    {
+      "filename": "ai-model-governance.txt",
+      "title": "AI Model Governance Policy",
+      "category": "ai_governance",
+      "department": "Risk",
+      "owner": "Arjun Rao",
+      "version": "v2.3",
+      "sections": [
+        { "ref": "3", "heading": "Model explainability", "text": "The model owner documents the factors that influence a credit decision in the model card. The model card is reviewed by the validation function before deployment." },
+        { "ref": "4", "heading": "Model validation", "text": "Every model is independently validated at least annually, and material changes are validated before release." },
+        { "ref": "5", "heading": "Human oversight", "text": "Analysts may override a model decision, but there is no mandatory human review step before an automated credit rejection is communicated to the customer." }
+      ]
+    },
+    {
+      "filename": "system-inventory.txt",
+      "title": "System Inventory — Lending and KYC",
+      "category": "system_inventory",
+      "department": "Technology",
+      "owner": "Dev Patel",
+      "version": "v6.1",
+      "sections": [
+        { "ref": "1", "heading": "Core systems", "text": "Customer Information File, Loan Management System, Key Fact Statement engine, Consent Hub, Document Management System, CRILC reporting adapter and the Security Operations Centre platform." },
+        { "ref": "2", "heading": "Ownership", "text": "The Customer Information File and Document Management System are owned by Technology. The CRILC adapter is owned by Finance. Business owns the Loan Management System and the Key Fact Statement engine." }
+      ]
+    },
+    {
+      "filename": "control-catalogue.txt",
+      "title": "Risk and Compliance Control Catalogue",
+      "category": "control_catalogue",
+      "department": "Risk",
+      "owner": "Neha Verma",
+      "version": "v4.0",
+      "sections": [
+        { "ref": "C1", "heading": "Customer due diligence review", "text": "Operations samples onboarding files monthly and checks identification, risk rating and beneficial ownership against the KYC policy." },
+        { "ref": "C2", "heading": "Exception reconciliation", "text": "Finance reconciles KYC exceptions against the CRILC report weekly and escalates ageing cases to the Principal Officer." },
+        { "ref": "C3", "heading": "Consent audit", "text": "Legal samples consent artefacts quarterly and verifies purpose, recipient and revocation in the immutable audit trail." },
+        { "ref": "C4", "heading": "Model validation control", "text": "Risk verifies that every model has a current validation report and a model card before release." },
+        { "ref": "C5", "heading": "Vendor cyber assessment", "text": "Technology verifies that every third party service provider has a current cyber security assessment on file." }
+      ]
+    }
+  ]
+}

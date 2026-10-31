@@ -140,7 +140,7 @@ function GapCard({ gap, mapping }: { gap: Level2Gap; mapping?: Level2Mapping }) 
   )
 }
 
-function DraftCard({ rec }: { rec: Level2Recommendation }) {
+function DraftCard({ rec, ownerName }: { rec: Level2Recommendation; ownerName?: string | null }) {
   const [text, setText] = useState(rec.proposed_text)
   const [note, setNote] = useState("")
   const [role, setRole] = useState<"reviewer" | "admin">("reviewer")
@@ -233,7 +233,10 @@ function DraftCard({ rec }: { rec: Level2Recommendation }) {
       ) : null}
 
       <p className="text-[10px] text-muted-foreground">
-        Owner: {rec.assignment.status === "unassigned" ? `unassigned · suggested ${rec.assignment.suggested_department}` : rec.assignment.owner_id}
+        Owner:{" "}
+        {rec.assignment.status === "unassigned"
+          ? `unassigned · suggested ${rec.assignment.suggested_department}`
+          : ownerName ?? rec.assignment.owner_id}
         {rec.approved_by ? ` · approved by ${rec.approved_by} on ${formatDateTime(rec.approved_at)}` : ""}
       </p>
 
@@ -285,7 +288,15 @@ function DraftCard({ rec }: { rec: Level2Recommendation }) {
   )
 }
 
-export function AssessmentWorkspace({ analysis, matrix }: { analysis: Level2Analysis; matrix: MatrixRow[] }) {
+export function AssessmentWorkspace({
+  analysis,
+  matrix,
+  people,
+}: {
+  analysis: Level2Analysis
+  matrix: MatrixRow[]
+  people: Record<string, string>
+}) {
   const [tab, setTab] = useState<"gaps" | "drafts" | "matrix">("gaps")
   const [filter, setFilter] = useState<GapState | "all">("all")
   const router = useRouter()
@@ -396,7 +407,13 @@ export function AssessmentWorkspace({ analysis, matrix }: { analysis: Level2Anal
               <span />
             </Panel>
           ) : (
-            analysis.recommendations.map((rec) => <DraftCard key={rec.id} rec={rec} />)
+            analysis.recommendations.map((rec) => (
+              <DraftCard
+                key={rec.id}
+                rec={rec}
+                ownerName={rec.assignment.owner_id ? people[rec.assignment.owner_id] : null}
+              />
+            ))
           )}
         </div>
       ) : null}
@@ -453,7 +470,11 @@ export function AssessmentWorkspace({ analysis, matrix }: { analysis: Level2Anal
                     )}
                   </td>
                   <td className="px-3 py-2 align-top">
-                    <div>{row.assignment.owner_id ?? "Unassigned"}</div>
+                    <div>
+                      {row.assignment.owner_id
+                        ? people[row.assignment.owner_id] ?? row.assignment.owner_id
+                        : "Unassigned"}
+                    </div>
                     <div className="text-[10px] text-muted-foreground">{row.assignment.suggested_department}</div>
                   </td>
                 </tr>

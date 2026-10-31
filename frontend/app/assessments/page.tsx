@@ -5,6 +5,7 @@ import { Suspense } from "react"
 import { AssessmentWorkspace, EmptyAssessment } from "@/components/assessments/assessment-workspace"
 import { AppHeader } from "@/components/dashboard/app-header"
 import { getLevel2 } from "@/lib/level2"
+import { getOrg } from "@/lib/org"
 
 export const metadata: Metadata = {
   title: "Impact assessment · Regula",
@@ -34,7 +35,7 @@ export default function Page() {
 }
 
 async function AssessmentView() {
-  const result = await getLevel2()
+  const [result, org] = await Promise.all([getLevel2(), getOrg()])
   if (!result.ok) {
     return (
       <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
@@ -50,6 +51,10 @@ async function AssessmentView() {
   const { latest, matrix, analyses } = result.data
   if (!latest) return <EmptyAssessment />
 
+  const people: Record<string, string> = org.ok
+    ? Object.fromEntries(org.data.people.map((person) => [person.id, person.name]))
+    : {}
+
   return (
     <div className="grid gap-4">
       {analyses.length > 1 ? (
@@ -57,7 +62,7 @@ async function AssessmentView() {
           {analyses.length} runs on file — showing the latest. Older runs stay available through the API for audit.
         </p>
       ) : null}
-      <AssessmentWorkspace analysis={latest} matrix={matrix} />
+      <AssessmentWorkspace analysis={latest} matrix={matrix} people={people} />
     </div>
   )
 }

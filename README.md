@@ -261,6 +261,14 @@ An assessment is only as good as its two inputs: extracted obligations and an in
 3. **Upload internal documents** in **Organisation → Documents**. Give each the right category and
    department, and make sure text is extractable (TXT, DOCX, or a text-based PDF — `pypdf` helps).
    A single KYC policy leaves CRILC, V-CIP and PAN requirements `cannot_assess`.
+
+   For the demo pack, run:
+   ```bat
+   python backend\seed_org.py --force
+   ```
+   It seeds 12 internal documents and a 10-person org chart from
+   `backend/data/org_demo/corpus.json`, runs the KYC assessment, and matches owners from the
+   register.
 4. **Run the assessment** at **http://localhost:3000/assessments** → *Run assessment*. Or:
    ```bat
    curl -X POST http://127.0.0.1:8787/api/level2/analyses ^
@@ -280,13 +288,15 @@ into real partial or covered states.
 |---|---|---|
 | Mapping + gap | `/assessments` → **Gaps** | obligation → internal §, relation, missing elements, why insufficient, confidence |
 | Recommended policy change | `/assessments` → **Drafts** | proposed wording, clause quote, target §, business area, priority, acceptance criteria, editable draft + approval |
-| Actions / ownership | `/assessments` → **Impact matrix** | one row per obligation × document: gap state, recommendation, priority, unassigned owner + suggested department |
+| Actions / ownership | `/impact` | owner, deadline, implementation status and priority override per row |
+| Matrix view | `/assessments` → **Impact matrix** | one row per obligation × document: gap, recommendation, priority, owner |
 | Machine handoff | `GET /api/level2/impact-matrix?analysis_id=…` | the same rows for the ownership/action workstream |
-| Proof | `GET /api/state` → `audit` | analysis, draft and approval events in the hash chain |
+| Proof | `GET /api/state` → `audit` | analysis, draft, approval and assignment events in the hash chain |
 
-**Scope note:** owner, deadline and implementation status are defined in the contract
-(`contracts/level2-gaps.md`) and rendered as unassigned with a suggested department. Assigning them
-belongs to the matrix/ownership workstream — this engine never invents an owner.
+**Ownership.** Owners come from the people directory (Organisation → People), not from confidence.
+A person is assigned only when the register identifies exactly one — the document's named owner, the
+only person in the department, or its single senior. Otherwise the row is flagged for manual
+assignment with the reason. `/impact` sets the owner, deadline and status.
 
 ## Repository
 
@@ -339,6 +349,7 @@ python -m pip install -r backend\requirements.txt   :: optional, real-world PDFs
 python backend\scrape.py            :: refresh the India sources
 python backend\scrape.py --check    :: fetch and compare without writing
 python backend\export_mock.py       :: regenerate the offline fixtures
+python backend\seed_org.py          :: seed internal docs + org chart, run an assessment
 ```
 
 **Frontend** (Next.js):
@@ -353,7 +364,7 @@ The frontend reads `GET http://127.0.0.1:8787/api/state` server-side and falls b
 `frontend/mock/state.json` with a visible degraded banner if the API is down.
 
 Pages: `/` home · `/regulatory` inbox · `/organisation` internal repository · `/assessments` impact
-assessment.
+assessment (gaps and drafts) · `/impact` ownership and action matrix.
 
 **AI enrichment** is a direct OpenAI-compatible call (no provider abstraction, no offline
 cache). Add a repo-root `.env`:
@@ -415,15 +426,18 @@ restart, after which `.env` applies again.
 | GET | `/api/level2/impact-matrix?analysis_id=` | Handoff rows for the ownership/action workstream |
 | PATCH | `/api/level2/recommendations/{id}` | Edit a draft |
 | POST | `/api/level2/recommendations/{id}/review` | Approve or reject (`role: reviewer\|admin`) |
+| POST | `/api/level2/analyses/{id}/assign-owners` | Match owners from the people directory |
+| PATCH | `/api/level2/recommendations/{id}/assignment` | Set owner, due date, status, priority override (role required) |
 
 ## Data honesty
 
 The RBI documents are real and publicly available; the text is extracted from the official
-notification pages. The 2025 Directions explicitly repeal the 2022 Guidelines. The control
-library is a curated model of a mid-size Indian bank's KYC and lending stack, not an import
-from a GRC system. The optional LLM is used for alignment, classification, significance and draft
-wording; every obligation still carries a verbatim quote and clause reference, and every draft keeps
-its deterministic `rule_text`.
+notification pages. The 2025 Directions explicitly repeal the 2022 Guidelines. The internal corpus
+and org chart under `backend/data/org_demo/` are synthetic demo data for exercising Level 2 — not a
+bank's real policies or personnel. The control library is a curated model of a mid-size Indian bank's
+KYC and lending stack, not an import from a GRC system. The optional LLM is used for alignment,
+classification, significance and draft wording; every obligation still carries a verbatim quote and
+clause reference, and every draft keeps its deterministic `rule_text`.
 
 Known limits: PDF text extraction uses `pypdf` when it is installed - real-world PDFs that store
 text as CID/Identity-H glyphs need it, and the stdlib fallback only reads simple literal-string

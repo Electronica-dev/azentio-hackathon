@@ -42,6 +42,7 @@ _KEYWORD = re.compile(
     re.I,
 )
 _NUMBERED = re.compile(r"^\s*(\d+(?:\.\d+){0,3})\.?\s+(\S.*)$")
+_ALNUM = re.compile(r"^\s*([A-Z]\d+(?:\.\d+)*)\.?\s+(\S.*)$")
 _PAGE = re.compile(r"^\s*(?:page\s*)?\d+\s*(?:of\s*\d+)?\s*$", re.I)
 _TOC = re.compile(r"\.{2,}\s*\d+\s*$")
 _TOC_HEADING = re.compile(r"^\s*(table of contents|contents|index)\s*$", re.I)
@@ -74,7 +75,7 @@ def chunk_document(doc: dict, text: str) -> list[dict]:
     doc_id = str(doc.get("id") or "doc")
     lines = _clean_lines(text)
 
-    if sum(1 for _, _, raw in lines if (_heading(raw) or (0,))[0] >= _HEADING_THRESHOLD) < 2:
+    if sum(1 for _, _, raw in lines if (_heading(raw) or (0,))[0] >= _HEADING_THRESHOLD) < 1:
         chunks = _by_paragraphs(lines)
     else:
         chunks = _by_headings(lines)
@@ -230,6 +231,12 @@ def _heading(line: str) -> tuple[float, str, str] | None:
             return None
         score = 0.9 if "." in number else 0.75
         return score, number, title
+
+    alnum = _ALNUM.match(text)
+    if alnum:
+        ref, title = alnum.group(1), alnum.group(2).strip()
+        if title[:1].isupper() and not title.endswith((".", ";", ",")) and len(title.split()) <= 14:
+            return 0.9, ref, title
 
     if text.isupper() and 3 <= len(text.split()) <= 12 and not text.endswith((".", ";", ":")):
         return 0.6, _ref_from_title(text), text.title()

@@ -25,6 +25,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 from . import audit, chunks, enrich, org
+from .text import words_to_int
 
 DATA = Path(__file__).resolve().parent.parent / "data"
 DB = DATA / "level2.json"
@@ -122,30 +123,87 @@ _ELEMENTS = (
      r"\bboard\b|committee|approved by"),
     ("consent", "customer consent",
      r"\bconsent\b|opt[- ]in|revoc"),
+    ("beneficial_ownership", "beneficial ownership identification",
+     r"beneficial owner|beneficial ownership"),
+    ("identity_verification", "PAN and Aadhaar verification",
+     r"permanent account number|\bpan\b|aadhaar"),
+    ("vcip_controls", "video KYC liveness and geo-tagging",
+     r"liveness|geo-tag|video based|v-cip"),
+    ("retrieval", "record retrieval within the stated time",
+     r"retrieval|retrieve"),
+    ("withdrawal", "withdrawal of the simplified measure",
+     r"omitted|withdrawn|simplified kyc"),
+)
+
+_CADENCE = re.compile(
+    r"every\s+(?:[\w\-]+\s+){0,3}(?:days?|months?|years?)"
+    r"|within\s+[\w\-]+\s+(?:calendar\s+)?(?:days?|months?|years?|hours?)"
+    r"|annually|monthly|quarterly",
+    re.I,
 )
 
 
+def _deadline_label(value: str) -> str:
+    """'thirty days' -> '30-day deadline'."""
+    match = re.match(r"([a-z\-]+(?:\s+[a-z\-]+)?)\s+(days?|months?|years?|hours?)", value.lower())
+    if not match:
+        return f"{value} deadline"
+    number = words_to_int(match.group(1))
+    unit = match.group(2).rstrip("s")
+    return f"{number}-{unit} deadline" if number is not None else f"{value} deadline"
+
+
 def _required_elements(obligation: dict) -> list[dict]:
-    text = f"{obligation.get('statement', '')} {' '.join(obligation.get('tags') or [])}".lower()
+    # Elements come from what the obligation says, not from its topical tags:
+    # a KYC obligation is tagged "reporting" even when it only sets a review
+    # interval, and treating that tag as a requirement invents a gap.
+    text = str(obligation.get("statement", "")).lower()
     required = [
         {"key": key, "label": label, "pattern": pattern}
         for key, label, pattern in _ELEMENTS
         if re.search(pattern, text)
     ]
     if obligation.get("deadline"):
-        required.append({"key": "deadline", "label": "stated compliance deadline",
-                         "pattern": r"within|every|not less than|by\s+\d"})
-    if obligation.get("params"):
-        required.append({"key": "parameter", "label": "configured numeric threshold",
-                         "pattern": r"\d|per cent|months|days|years"})
+        required.append({"key": "deadline", "label": _deadline_label(str(obligation["deadline"])),
+                         "value": str(obligation["deadline"])})
+    elif _CADENCE.search(text):
+        required.append({"key": "cadence", "label": "stated review or reporting interval",
+                         "pattern": _CADENCE.pattern})
     return required
+
+
+def _deadline_in(text: str, deadline: str) -> bool:
+    """True when the text states the obligation's actual deadline."""
+    low = (text or "").lower()
+    # "seven calendar days" satisfies "seven days".
+    low = re.sub(r"\bcalendar\s+", "", low)
+    phrase = re.sub(r"\bcalendar\s+", "", deadline.lower().strip())
+    if not phrase:
+        return False
+    if phrase in low:
+        return True
+    match = re.match(r"([a-z\-]+(?:\s+[a-z\-]+)?)\s+(days?|months?|years?|hours?)", phrase)
+    if not match:
+        return False
+    value = words_to_int(match.group(1))
+    if value is None:
+        return False
+    unit = match.group(2)
+    if unit.startswith("month") and value == 12:
+        if re.search(r"\bannually\b|\bannual\b|\byearly\b|\bone year\b", low):
+            return True
+    return bool(re.search(rf"\b{value}\b\s+(?:calendar\s+)?{unit}\b", low, re.I))
 
 
 def _matched_elements(required: list[dict], text: str) -> tuple[list[str], list[str]]:
     low = (text or "").lower()
     matched, missing = [], []
     for element in required:
-        (matched if re.search(element["pattern"], low) else missing).append(element["label"])
+        if element["key"] == "deadline":
+            found = _deadline_in(low, element["value"])
+        else:
+            found = bool(re.search(element["pattern"], low))
+        (matched if found else missing).append(element["label"])
     return matched, missing
 
 
@@ -223,17 +281,26 @@ def analyse(state: dict, payload: dict, actor: str = "Regula Agent",
         obligation_vec = index.vec(f"{obligation.get('statement', '')} {' '.join(obligation.get('tags') or [])}")
 
         scored_docs = []
+        obligation_tags = {t.lower() for t in (obligation.get("tags") or [])}
         for doc in indexed:
+            doc_tokens = set(_tokens(f"{doc.get('title', '')} {doc.get('category', '')}"))
+            doc_tag_overlap = len(obligation_tags & doc_tokens) / max(1, min(len(obligation_tags), 5)) if obligation_tags else 0.0
             best = 0.0
             best_chunk = None
             for chunk in by_doc[doc["id"]]:
-                score = 0.8 * index.cosine(obligation_vec, index.vec(chunk["text"])) + 0.2 * _tag_overlap(obligation, chunk)
+                base = 0.8 * index.cosine(obligation_vec, index.vec(chunk["text"])) + 0.2 * _tag_overlap(obligation, chunk)
+                matched, _ = _matched_elements(required, chunk["text"])
+                coverage = (len(matched) / len(required)) if required else _core_coverage(obligation, chunk["text"])
+                score = base + 0.15 * coverage + 0.1 * doc_tag_overlap
                 if score > best:
                     best, best_chunk = score, chunk
             scored_docs.append((best, doc, best_chunk))
         scored_docs.sort(key=lambda item: -item[0])
 
-        candidates = [item for item in scored_docs[:MAX_DOCS] if item[0] >= CANDIDATE_FLOOR]
+        # One obligation is assessed against its primary document. Covering the
+        # same requirement in several policies is common, and drafting a change
+        # against every partial match produces contradictory advice.
+        candidates = [item for item in scored_docs[:1] if item[0] >= CANDIDATE_FLOOR]
         if not candidates:
             gap = _cannot_assess(analysis_id, obligation, required, [d for _, d, _ in scored_docs[:3]])
             recommendation = _recommend(analysis_id, obligation, {}, None, gap,
@@ -285,7 +352,7 @@ def analyse(state: dict, payload: dict, actor: str = "Regula Agent",
                 ),
                 "method": "rule",
                 "search_scope": {
-                    "documents_searched": [d["id"] for _, d, _ in candidates],
+                    "documents_searched": [d["id"] for _, d, _ in scored_docs[:MAX_DOCS]],
                     "terms": _tokens(obligation.get("statement", ""))[:8],
                     "excluded": [e["document_id"] for e in excluded],
                 },
@@ -525,10 +592,14 @@ def _recommend(analysis_id: str, obligation: dict, doc: dict, chunk: dict | None
                gap_state: str, state: dict) -> dict:
     is_evidence = gap_state == "cannot_assess"
     key = _missing_key(missing, required)
+    deadline = next((e.get("label") for e in required if e["key"] == "deadline"), "")
     ref = chunk.get("ref", "") if chunk else ""
-    title = (f"Provide evidence for {obligation.get('section_ref', 'the requirement')}"
-             if is_evidence else
-             f"Add {missing[0] if missing else 'the requirement'} to {doc.get('title', 'the policy')}")
+    if is_evidence:
+        title = f"Provide evidence for {obligation.get('section_ref', 'the requirement')}"
+    elif key == "deadline" and deadline:
+        title = f"State the {deadline} in {doc.get('title', 'the policy')}"
+    else:
+        title = f"Add {missing[0] if missing else 'the requirement'} to {doc.get('title', 'the policy')}"
     title = title[:100]
 
     if is_evidence:
