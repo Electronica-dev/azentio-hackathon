@@ -18,6 +18,7 @@ deck/~$*
 
 # local
 *.log
+.env
 
 .dsh-office-*
 
