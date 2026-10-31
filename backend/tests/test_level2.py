@@ -94,12 +94,13 @@ class Level2Tests(unittest.TestCase):
     def tearDown(self):
         level2.DB.unlink(missing_ok=True)
 
-    def _analyse(self, chunks, documents=None):
+    def _analyse(self, chunks, documents=None, use_llm=False):
         return level2.analyse(
             self.state,
             {"regulatory_source_id": "src-ai-2026"},
             documents=[DOC] if documents is None else documents,
             chunk_corpus=chunks,
+            use_llm=use_llm,
         )
 
     def test_partial_gap_produces_an_actionable_draft(self):
@@ -211,6 +212,42 @@ class Level2Tests(unittest.TestCase):
         self.state["obligations"] = []
         with self.assertRaises(ValueError):
             self._analyse(PARTIAL)
+
+    def test_model_polishes_the_draft_and_keeps_the_rule_text(self):
+        polished = (
+            "Amend the AI Model Governance Policy to require a named reviewer to approve or reject "
+            "every automated credit decision before it is communicated, and retain the reviewer "
+            "identity and timestamp in the audit trail."
+        )
+        original = level2.enrich.polish_text
+        level2.enrich.polish_text = lambda context: polished
+        try:
+            analysis = self._analyse(PARTIAL, use_llm=True)
+        finally:
+            level2.enrich.polish_text = original
+
+        rec = analysis["recommendations"][0]
+        self.assertEqual(rec["method"], "llm")
+        self.assertEqual(rec["proposed_text"], polished)
+        self.assertTrue(rec["rule_text"])
+        self.assertNotEqual(rec["rule_text"], polished)
+        self.assertEqual(rec["status"], "draft")
+        self.assertEqual(rec["regulatory_clause"]["quote"], OBLIGATION["quote"])
+        self.assertEqual(analysis["counts"]["polished"], 1)
+
+    def test_model_failure_keeps_the_deterministic_draft(self):
+        original = level2.enrich.polish_text
+        level2.enrich.polish_text = lambda context: None
+        try:
+            analysis = self._analyse(PARTIAL, use_llm=True)
+        finally:
+            level2.enrich.polish_text = original
+
+        rec = analysis["recommendations"][0]
+        self.assertEqual(rec["method"], "rule")
+        self.assertNotIn("rule_text", rec)
+        self.assertEqual(analysis["status"], "partial")
+        self.assertEqual(analysis["counts"]["polished"], 0)
 
 
 if __name__ == "__main__":

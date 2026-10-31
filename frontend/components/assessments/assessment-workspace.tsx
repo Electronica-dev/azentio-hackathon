@@ -186,6 +186,11 @@ function DraftCard({ rec }: { rec: Level2Recommendation }) {
       <header className="flex flex-wrap items-center gap-2">
         <Chip className={STATUS[rec.status]?.tone ?? STATUS.draft.tone}>{STATUS[rec.status]?.label ?? rec.status}</Chip>
         <Chip className={PRIORITY[rec.priority.level] ?? PRIORITY.low}>{rec.priority.level}</Chip>
+        {rec.method === "llm" ? (
+          <Chip className="border-violet-200 bg-violet-50 text-violet-800 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-200">
+            AI-polished
+          </Chip>
+        ) : null}
         <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{rec.change_type.replaceAll("_", " ")}</span>
         <span className="ml-auto text-[10px] text-muted-foreground">v{rec.version}</span>
       </header>

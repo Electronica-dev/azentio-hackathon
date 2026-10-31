@@ -376,3 +376,48 @@ def adjudicate_relationship(source: dict, candidates: list[dict]) -> dict | None
         "evidence": str(result.get("evidence") or "")[:200],
         "rationale": str(result.get("rationale") or "")[:400],
     }
+
+
+POLISH_SYSTEM = """You are a compliance policy editor at a bank. You are given one regulatory
+requirement, the elements an internal control is missing, and a rule-based draft. Rewrite the
+draft into one specific, implementable policy clause or control step.
+
+Return STRICT JSON only (no markdown, no prose): {"proposed_text": string}
+
+Rules:
+- Name the actor, the action and the object. "Update the policy" is not acceptable.
+- Preserve every regulatory element in the requirement; do not weaken it or add new duties.
+- Do not invent clause numbers, owners, systems, dates or thresholds absent from the input.
+- Do not add citations; the caller attaches the regulatory clause separately.
+- Between 40 and 600 characters, one paragraph, plain English.
+- Output valid JSON only. Escape any double quote inside the string.
+"""
+
+
+def polish_text(context: dict) -> str | None:
+    """Rewrite a draft recommendation into specific wording.
+
+    Returns None on any failure so the deterministic draft survives untouched.
+    The caller keeps the original text in ``rule_text`` for audit.
+    """
+    if not is_configured():
+        return None
+
+    prompt = (
+        f"REGULATORY REQUIREMENT\n{_clip(context.get('obligation', ''), 700)}\n"
+        f"CLAUSE: {context.get('section_ref', '')}\n"
+        f"TARGET DOCUMENT: {context.get('document', '')} {context.get('ref', '')}\n"
+        f"MISSING ELEMENTS: {', '.join(context.get('missing') or [])}\n"
+        f"BUSINESS AREA: {context.get('business_area', '')}\n"
+        f"CURRENT DRAFT\n{_clip(context.get('current', ''), 700)}"
+    )
+    try:
+        result = _chat([
+            {"role": "system", "content": POLISH_SYSTEM},
+            {"role": "user", "content": prompt},
+        ], timeout=45)
+    except Exception:  # noqa: BLE001 - wording is optional
+        return None
+
+    text = " ".join(str(result.get("proposed_text") or "").split())
+    return text[:800] if len(text) >= 60 else None

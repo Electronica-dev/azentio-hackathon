@@ -20,10 +20,11 @@ import math
 import re
 import threading
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime
 from pathlib import Path
 
-from . import audit, chunks, org
+from . import audit, chunks, enrich, org
 
 DATA = Path(__file__).resolve().parent.parent / "data"
 DB = DATA / "level2.json"
@@ -33,6 +34,7 @@ MAPPING_FLOOR = 0.16     # chunk cosine needed to become a mapping
 CANDIDATE_FLOOR = 0.10   # document cosine needed to be "searched"
 MAX_DOCS = 3             # documents assessed per obligation
 MAX_MAPPINGS = 3         # clause mappings kept per document
+MAX_POLISH = 6           # drafts rewritten by the optional model per run
 EDITED = ("title", "proposed_text", "implementation_notes", "priority", "acceptance_criteria", "business_area")
 
 _lock = threading.Lock()
@@ -184,8 +186,12 @@ def _target_kind(doc_type: str) -> str:
 # ---------------------------------------------------------------------------
 def analyse(state: dict, payload: dict, actor: str = "Regula Agent",
             documents: list[dict] | None = None,
-            chunk_corpus: list[dict] | None = None) -> dict:
+            chunk_corpus: list[dict] | None = None,
+            use_llm: bool | None = None) -> dict:
     """Run one analysis. ``documents``/``chunk_corpus`` are injectable for tests."""
+    if use_llm is None:
+        requested = (payload.get("options") or {}).get("use_llm")
+        use_llm = enrich.is_configured() if requested is None else bool(requested)
     obligations = _scope_obligations(state, payload)
     if not obligations:
         raise ValueError("no obligations in scope")
@@ -294,9 +300,11 @@ def analyse(state: dict, payload: dict, actor: str = "Regula Agent",
                 gap["recommendation_ids"] = [recommendation["id"]]
             gaps.append(gap)
 
+    polished, polish_failed = _polish(recommendations, gaps, use_llm)
+
     analysis = {
         "id": analysis_id,
-        "status": "complete",
+        "status": "partial" if use_llm and polish_failed else "complete",
         "generated_at": created,
         "engine_version": ENGINE_VERSION,
         "regulatory_scope": payload.get("regulatory_source_id") and [payload["regulatory_source_id"]]
@@ -308,6 +316,7 @@ def analyse(state: dict, payload: dict, actor: str = "Regula Agent",
             "mappings": len(mappings),
             "gaps": _counts(g["state"] for g in gaps),
             "recommendations": _counts(r["kind"] for r in recommendations),
+            "polished": polished,
         },
         "mappings": mappings,
         "gaps": gaps,
@@ -323,6 +332,45 @@ def analyse(state: dict, payload: dict, actor: str = "Regula Agent",
               f"{len(obligations)} obligations → {len(mappings)} mappings → {len(gaps)} gaps "
               f"→ {len(recommendations)} drafts")
     return analysis
+
+
+def _polish(recommendations: list[dict], gaps: list[dict], use_llm: bool) -> tuple[int, int]:
+    """Rewrite drafts with the optional model; keep the rule text for audit.
+
+    A failure leaves the deterministic wording in place and marks the run
+    ``partial``. The model never changes the gap state, the clause, or the
+    draft status.
+    """
+    if not use_llm:
+        return 0, 0
+    targets = [r for r in recommendations if r["kind"] == "compliance_change"][:MAX_POLISH]
+    if not targets:
+        return 0, 0
+    by_id = {g["id"]: g for g in gaps}
+
+    def refine(rec: dict) -> str | None:
+        gap = by_id.get((rec.get("gap_ids") or [""])[0], {})
+        return enrich.polish_text({
+            "obligation": rec["regulatory_clause"]["quote"] or rec["rationale"],
+            "section_ref": rec["regulatory_clause"]["section_ref"],
+            "document": rec["target"]["title"],
+            "ref": rec["target"]["ref"],
+            "missing": gap.get("what_is_missing", []),
+            "business_area": rec["business_area"],
+            "current": rec["proposed_text"],
+        })
+
+    polished = failed = 0
+    with ThreadPoolExecutor(max_workers=min(4, len(targets))) as pool:
+        for rec, text in zip(targets, pool.map(refine, targets)):
+            if text:
+                rec["rule_text"] = rec["proposed_text"]
+                rec["proposed_text"] = text
+                rec["method"] = "llm"
+                polished += 1
+            else:
+                failed += 1
+    return polished, failed
 
 
 def _scope_obligations(state: dict, payload: dict) -> list[dict]:

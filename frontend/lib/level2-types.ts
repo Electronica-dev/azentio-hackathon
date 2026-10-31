@@ -61,12 +61,15 @@ export type Level2Recommendation = {
   title: string
   rationale: string
   proposed_text: string
+  /** Deterministic wording kept when the optional model rewrote proposed_text. */
+  rule_text?: string
   implementation_notes: string
   regulatory_clause: { obligation_id: string; section_ref: string; quote: string }
   business_area: string
   priority: { level: PriorityLevel; rationale: string; due_hint_days?: number }
   acceptance_criteria: string[]
   status: RecommendationStatus
+  method?: "rule" | "llm"
   version: number
   created_at: string
   approved_by: string | null
