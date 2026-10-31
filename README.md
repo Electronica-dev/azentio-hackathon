@@ -1,36 +1,143 @@
 # Regula
 
-**Regulatory Change Impact Agent** — track a regulatory change, assess policy / process / system impact, and produce an audit-ready change plan.
+**Regulatory Change Impact Agent** — tracks regulatory publications, detects what changed
+against the earlier version, extracts the affected obligations and shows the impact on a
+bank's policies, processes, systems and controls — with human review and a hash-chained audit
+trail.
 
 Built for the Azentio.ai Build Labs hackathon, Challenge 02.
 
-![Inbox](misc/shot-inbox.png)
-
 ---
+
+## The problem
+
+Compliance teams read circulars by hand, compare them with earlier instructions and work out
+which internal policies, processes and systems must change. It is slow, inconsistent across
+jurisdictions and hard to evidence to an auditor. Regula turns that reading into a traceable
+decision chain: **regulation → clause → obligation → impacted asset → owner → approval**.
+
+## What it does
+
+- **Monitor** configured regulator sources and fetch new publications; keep a searchable
+  repository with a content hash per document.
+- **Understand** each document: numbered clauses, obligations with a verbatim quote and clause
+  reference, deadlines, thresholds, applicability.
+- **Compare** a publication with the earlier regulation it repeals or amends: side-by-side
+  text, word-level redline, and a plain-English significance sentence.
+- **Classify** every change: new obligation, modified, withdrawn, deadline extended, deadline
+  shortened, clarification, or no material change.
+- **Assess impact** against a control library (policies, processes, systems, controls), with a
+  numeric gap, severity score and ownership.
+- **Plan and prove**: owned tasks with due dates, human approval, and a SHA-256 hash chain over
+  every extraction, approval and status change.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph SRC["India source websites"]
+        RBI["RBI — rbi.org.in<br/>Master Directions and notifications"]
+        SEBI["SEBI — sebi.gov.in<br/>Circulars"]
+    end
+
+    RBI --> MON["Monitor / scraper<br/>fetch, clean HTML, SHA-256"]
+    SEBI --> MON
+    MON --> REPO[("Repository<br/>document text + hash")]
+    REPO --> PARSE["Clause parser<br/>numbered sections and headings"]
+    PARSE --> DETECT{"Change detection<br/>hash, clause diff, prior link"}
+    DETECT -- "no change" --> NONE["No material change"]
+    DETECT -- "changed" --> ALIGN["AI alignment<br/>new clause to prior clause"]
+    ALIGN --> CLASS["Classification<br/>new / modified / withdrawn /<br/>deadline extended or shortened /<br/>clarification / no material change"]
+    CLASS --> OBL["Obligations<br/>verbatim quote + clause reference"]
+    OBL --> IMPACT["Impact and plan<br/>asset gap, owner, effort, due date"]
+    OBL --> UI["Dashboard<br/>filters, side-by-side diff, quote trace"]
+    IMPACT --> UI
+    CLASS --> AUDIT[("Hash-chained audit trail")]
+    IMPACT --> AUDIT
+```
+
+### How a change is detected
+
+1. **New vs already processed** — the extracted text is hashed (SHA-256); an unchanged hash
+   means the document is skipped. Each fetch records the document, its hash and timestamps.
+2. **Which prior document** — explicit repeal/amendment references in the text (e.g. the 2025
+   Directions repeal the 2022 Guidelines), confirmed by an AI relationship pass with a
+   confidence score; below the floor it is flagged *unresolved* instead of guessed.
+3. **Which clause changed** — the new document is parsed into numbered clauses and diffed
+   against the prior document at word level: added, modified, removed.
+4. **What kind of change** — an AI pass maps each clause to its prior counterpart and assigns
+   one of the seven change classes plus a one-sentence significance. Deterministic rules still
+   produce a class if the model is unavailable.
+5. **Who decides** — every acceptance or rejection is a human action recorded in the audit
+   chain.
+
+### India sources
+
+| Authority | Website | Use |
+|---|---|---|
+| RBI | https://www.rbi.org.in/ | Master Directions, notifications and amendments |
+| SEBI | https://www.sebi.gov.in/ | Circulars and framework amendments |
+
+The committed demo documents are the RBI **Digital Lending** pair:
+
+- 2022 Guidelines — https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=12382&Mode=0
+- 2025 Directions — https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=12848&Mode=0
+
+`backend/scrape.py` reproduces both text files from those pages; `backend/data/scrape-manifest.json`
+records the source URL and content hash.
+
+## Repository
+
+```
+backend/
+  serve.py              stdlib JSON API
+  scrape.py             automated fetch + extraction for configured sources
+  regula/
+    ingest.py           clause parsing, prior alignment, redline
+    extract.py          obligations with quotes, params, deadlines
+    enrich.py           AI alignment, change class, significance
+    changes.py          change taxonomy across the repository
+    discover.py         source monitoring (feeds + offline mirrors)
+    extract_api.py      manual upload / text extraction
+    match.py            asset matching over the control library
+    assess.py           severity, numeric gap, rationale, effort
+    planner.py          owned tasks, dependencies, due dates
+    pipeline.py         run orchestration
+    audit.py            SHA-256 hash chain
+    store.py            state, persistence, report export
+  data/                 documents, prior versions, inventory, regulators
+frontend/
+  app/                  Next.js routes (dashboard, publication detail)
+  components/dashboard/ dashboard, clause diff, obligation card, filters
+  lib/                  contract types, domain adapters, state fetch
+contracts/api.md        API contract
+docs/                   requirements, plan, demo script
+```
 
 ## Run it
 
-**Backend** — Python stdlib only, no install:
+**Backend** (Python stdlib only):
 
 ```bat
-run.cmd        :: legacy entry point, now starts backend/serve.py on :8787
+run.cmd                 :: starts backend/serve.py on :8787
+python backend\serve.py --reset
+python backend\scrape.py            :: refresh the India sources
+python backend\scrape.py --check    :: fetch and compare without writing
 ```
 
-Or directly: `python backend\serve.py --reset` (rebuilds the demo workspace from seed).
-
-**Frontend** — Next.js dashboard, one install:
+**Frontend** (Next.js):
 
 ```bat
 cd frontend
 npm ci
-npm run dev    :: http://localhost:3000
+npm run dev             :: http://localhost:3000
 ```
 
 The frontend reads `GET http://127.0.0.1:8787/api/state` server-side and falls back to
-`frontend/mock/state.json` with a visible degraded banner when the API is down.
+`frontend/mock/state.json` with a visible degraded banner if the API is down.
 
-**AI enrichment** (clause alignment, change class, plain-English significance) is a direct
-OpenAI-compatible call. Put the key in the repo-root `.env`:
+**AI enrichment** is a direct OpenAI-compatible call (no provider abstraction, no offline
+cache). Add a repo-root `.env`:
 
 ```ini
 REGULA_LLM_BASE_URL=https://openrouter.ai/api/v1
@@ -38,114 +145,34 @@ REGULA_LLM_MODEL=z-ai/glm-5.3-flash
 REGULA_LLM_API_KEY=...
 ```
 
-Without a key the pipeline still runs; enrichment fields simply stay empty.
-
-The canonical app is `backend/` (API + engine) and `frontend/` (Next.js dashboard).
-
----
-
-## What it does
-
-```
-circular → clauses + redline → obligations → asset graph → scored impact → change plan → audit chain
-```
-
-- **Clause redline.** Section-level diff against the prior version, word-level additions and deletions.
-- **Obligations.** Extracted with a verbatim quote, clause reference, modality, deadline and confidence.
-- **Asset graph.** Every obligation is mapped to policies, processes, systems and controls with a match score and shared tags.
-- **Numeric gap.** Machine-readable parameters (`review_cycle_months`, `bo_threshold_pct`, `retention_years`, …) are compared to the bank's current configuration. `24 → 12`, `25% → 10%`, `5 years → 8 years`.
-- **Impact score.** Criticality × change type × urgency × gap, with a written rationale and effort estimate.
-- **Change plan.** One owned task per impacted asset, priority, due date derived from the effective date, dependency on the policy change.
-- **Evidence chain.** SHA-256 hash chain over every extraction, approval and status change. Exportable assessment pack.
-
-No LLM is required for the deterministic pipeline. When `REGULA_LLM_*` is configured, a
-direct OpenAI-compatible call aligns each new clause with its prior counterpart, classifies
-the change, and writes a plain-English significance sentence; failures fall back to the
-deterministic output.
-
----
-
-## The demo path
-
-1. **Dashboard** — publications across regions, filters by authority / change class / state, and a
-   "Run monitoring" strip.
-2. Open **RBI (Digital Lending) Directions, 2025** (live document, fetched from rbi.org.in).
-3. **Clause comparison** — previous 2022 guideline text next to the 2025 text, word-level
-   highlights and the AI significance sentence.
-4. Click an obligation's clause reference — the exact quote is marked in the source text.
-5. **Review state** and the hash-chained audit trail record every human decision.
-
----
-
-## Architecture
-
-```
-backend/
-  serve.py              stdlib ThreadingHTTPServer, JSON API
-  regula/
-    ingest.py           clause parser, prior alignment, redline
-    extract.py          obligation extraction with quotes and params
-    enrich.py           AI alignment, change class, significance
-    changes.py          change taxonomy across the corpus
-    discover.py         source monitoring (feeds + offline mirrors)
-    extract_api.py      manual upload / text extraction
-    match.py            TF-IDF over the asset inventory
-    assess.py           score, severity, delta, effort
-    planner.py          owned tasks, dependencies, due dates
-    pipeline.py         run orchestration with per-step timings
-    audit.py            SHA-256 prev-hash chain
-    store.py            state assembly, persistence, report export
-  data/                 circulars, prior versions, inventory, regulators
-frontend/
-  app/                  Next.js routes (dashboard, publications/[id])
-  components/dashboard/ dashboard, clause diff, obligation card, filters
-  lib/                  contract types, domain adapters, state fetch
-contracts/api.md        frozen API contract
-docs/                   plan, requirements, demo script
-```
-
-**Why the split?** The engine stays stdlib-only, so it runs without an install; the dashboard
-is a Next.js app that reads the single `GET /api/state` document and degrades to a fixture
-when the API is unreachable.
-
----
+Without a key the deterministic pipeline still runs; enrichment fields stay empty.
 
 ## API
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/api/state` | Whole workspace: sources, clauses, obligations, assets, impacts, tasks, audit, runs, summary |
-| POST | `/api/sources/{id}/run` | Run the agent on one source |
-| POST | `/api/impacts/{id}/review` | `{decision: "approved"\|"rejected", note, actor}` |
-| POST | `/api/tasks/{id}/status` | `{status: "proposed"\|"approved"\|"in_progress"\|"done", actor}` |
-| GET | `/api/export/{sourceId}.md` | Download the assessment pack |
+| GET | `/api/state` | Full workspace: sources, clauses, obligations, impacts, tasks, audit |
+| GET | `/api/changes` | Classified change list with counts by class |
+| GET | `/api/export/{sourceId}.md` | Assessment pack as markdown |
+| POST | `/api/discover` | Run a monitoring cycle |
+| POST | `/api/extract` | Extract text and obligations from an uploaded document |
+| POST | `/api/sources/{id}/run` | Analyse one publication |
+| POST | `/api/impacts/{id}/review` | Approve or reject an impact |
+| POST | `/api/tasks/{id}/status` | Move a task through its workflow |
 | POST | `/api/reset` | Rebuild from seed |
 | GET | `/api/health` | Liveness |
 
-Full field definitions: [`contracts/api.md`](contracts/api.md).
+## Data honesty
 
----
+The RBI documents are real and publicly available; the text is extracted from the official
+notification pages. The 2025 Directions explicitly repeal the 2022 Guidelines. The control
+library is a curated model of a mid-size Indian bank's KYC and lending stack, not an import
+from a GRC system. The optional LLM is used for alignment, classification and significance;
+every obligation still carries a verbatim quote and clause reference.
 
-## Demo data honesty
+Known limits: PDF/OCR ingestion is not wired (HTML and text are), SEBI monitoring is
+configured but not yet fetched live, scoring weights are hand-tuned for the demo, and approval
+is a demo identity rather than SSO.
 
-The circulars are realistic but synthetic, written for the demo. The prior-versions file exists so the redline is real. The asset inventory is a curated model of a mid-size Indian bank's KYC and lending stack; every asset has an owner, a current state and parameters that conflict with the amendment.
-
-The engine is real: it parses, extracts, maps, scores, plans and hashes whatever is in `app/data/`.
-
----
-
-## Known limits (say this before a judge does)
-
-- PDF/OCR ingestion is not wired; documents are text files.
-- The asset inventory is curated, not imported from ServiceNow/Archer.
-- Scoring weights are hand-tuned for the demo, not calibrated on a labelled gold set.
-- Approval is a demo identity, not SSO.
-- The optional LLM adapter is a stub.
-
-Roadmap: PDF extraction, control-library import, Jira/ServiceNow sync, reviewer workflow, gold-set accuracy benchmark.
-
----
-
-## License
-
-Internal hackathon prototype. Not for production use.
+Roadmap: PDF extraction, live SEBI ingestion, scheduled monitoring, control-library import,
+reviewer workflow and a labelled accuracy benchmark.

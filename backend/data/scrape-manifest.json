@@ -1,0 +1,22 @@
+{
+  "sources": [
+    {
+      "id": "rbi-digital-lending-2025",
+      "authority": "RBI",
+      "ref": "RBI/2025-26/36",
+      "page_url": "https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=12848&Mode=0",
+      "out": "rbi_digital_lending_2025.txt",
+      "sha256": "ae12739a1a65c87b9bb804b94ced243437daa4aa8dca06e709f03a194e734c67",
+      "words": 6770
+    },
+    {
+      "id": "rbi-digital-lending-2022",
+      "authority": "RBI",
+      "ref": "RBI/2022-23/111",
+      "page_url": "https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=12382&Mode=0",
+      "out": "rbi_digital_lending_2022.txt",
+      "sha256": "d9f94a225d67358cf5471bf82fcb8e77bb98e81f3fb2ddf0802fb21d8571c89e",
+      "words": 3395
+    }
+  ]
+}
