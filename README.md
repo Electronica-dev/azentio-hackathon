@@ -194,6 +194,32 @@ The committed demo documents are the RBI **Digital Lending** pair:
 `backend/scrape.py` reproduces both text files from those pages; `backend/data/scrape-manifest.json`
 records the source URL and content hash.
 
+## Screenshots
+
+**Home** - compliance score with its breakdown, open changes, critical gaps and deadlines.
+
+![Home](static/home.png)
+
+**Regulatory** - every monitored publication, its status and the type of change.
+
+![Regulatory changes](static/regulatory-changes.png)
+
+**Organisation** - internal documents, assets and the people directory that serves as the ownership register.
+
+![Organisation](static/org.png)
+
+**Assessments** - each obligation mapped to the internal clause that should cover it, with the gap and a draft change.
+
+![Assessments](static/assessments.png)
+
+**Impact** - the impact matrix: obligation × internal document, the gap, the recommended change and its owner.
+
+![Impact matrix](static/impact.png)
+
+Opening a row shows the evidence, the draft wording, and where a reviewer confirms the owner, sets the deadline and records status.
+
+![Impact matrix row](static/impact-detail.png)
+
 ## Impact assessment (Level 2)
 
 Level 2 answers a different question from the redline: **does the bank's own documentation cover
