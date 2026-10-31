@@ -23,6 +23,7 @@ import { RegionMatrix } from "./region-matrix"
 import { ChangeClassLegend, RepositoryTable } from "./repository-table"
 import { RunDiscovery } from "./run-discovery"
 import { UploadCircular } from "./upload-circular"
+import { SyncScheduleControl } from "./sync-schedule"
 
 const STATE_ICON: Record<DashboardState, React.ComponentType<{ className?: string }>> = {
   new_publication: FileSearchIcon,
@@ -50,8 +51,9 @@ const SORT_LABEL: Record<string, string> = {
 /**
  * Monitor strip (R4/R5). The contract's v1.1 `meta.monitor` block is optional:
  * when it is absent we say so instead of inventing a last/next run. "Run
- * monitoring" calls the discovery action (RBI + SEBI RSS); "Upload circular"
- * posts a file and runs the same relationship ladder on it.
+ * monitoring" calls the discovery action (RBI + SEBI RSS), the auto-sync
+ * control sets its cron schedule, and "Upload circular" posts a file and
+ * runs the same relationship ladder on it.
  */
 function MonitorStrip({ state }: { state: RegulaState }) {
   const { monitor } = describeMeta(state.meta)
@@ -84,7 +86,9 @@ function MonitorStrip({ state }: { state: RegulaState }) {
           contract v1.1 <code className="font-mono">meta.monitor</code>.
         </span>
       )}
-      <span className="ml-auto inline-flex items-center gap-1.5">
+      <span className="ml-auto inline-flex flex-wrap items-center gap-1.5">
+        <SyncScheduleControl />
+        <Separator orientation="vertical" className="h-4" />
         <RunDiscovery />
         <UploadCircular />
       </span>

@@ -13,6 +13,7 @@ from urllib.parse import urlparse, unquote
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
+from backend.regula import schedule
 from regula import audit, changes, extract_api, pipeline, relate, rss, store, upload  # noqa: E402
 
 WEB = ROOT.parent / "web"
@@ -30,6 +31,27 @@ MIME = {
     ".ico": "image/x-icon",
     ".woff2": "font/woff2",
 }
+
+
+def sync_documents(limit: int = 3, ingest: bool = True, actor: str = "Discovery Service") -> dict:
+    """One discovery cycle: fetch feeds, ingest the newest directives, persist."""
+    with LOCK:
+        run = rss.discover(STATE, actor=actor)
+        run["ingested"] = rss.ingest_new(STATE, limit=limit, actor=actor) if ingest else []
+        store.save(STATE)
+    return run
+
+
+def _scheduled_sync() -> dict:
+    try:
+        limit = max(0, min(20, int(os.environ.get("REGULA_SYNC_LIMIT", "3"))))
+    except ValueError:
+        limit = 3
+    run = sync_documents(limit=limit, actor="Scheduled Sync")
+    return {"run": run["id"], **run["stats"], "ingested": len(run["ingested"]), "errors": len(run["errors"])}
+
+
+SCHEDULER = schedule.Scheduler.from_env(_scheduled_sync)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -82,6 +104,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._state()
         if path == "/api/health":
             return self._json(200, {"ok": True, "sources": len(STATE["sources"]), "audit": len(STATE["audit"])})
+        if path in ("/api/sync/schedule", "/api/sync/schedule/"):
+            return self._json(200, SCHEDULER.status())
         if path in ("/api/changes", "/api/changes/"):
             with LOCK:
                 items = changes.build_changes(STATE)
@@ -109,11 +133,13 @@ class Handler(BaseHTTPRequestHandler):
             except (TypeError, ValueError):
                 limit = 3
             ingest = body.get("ingest", True) is not False
-            with LOCK:
-                run = rss.discover(STATE)
-                run["ingested"] = rss.ingest_new(STATE, limit=limit) if ingest else []
-                store.save(STATE)
-            return self._json(200, run)
+            return self._json(200, sync_documents(limit=limit, ingest=ingest))
+
+        if path in ("/api/sync/schedule", "/api/sync/schedule/"):
+            try:
+                return self._json(200, SCHEDULER.configure(self._body().get("cron")))
+            except schedule.CronError as exc:
+                return self._json(400, {"error": str(exc)})
 
         if path in ("/api/extract", "/api/extract/"):
             body = self._body()
@@ -236,7 +262,10 @@ def main() -> None:
     port = int(os.environ.get("PORT", "8787"))
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     print(f"\n  Regula · Regulatory Change Impact Agent")
-    print(f"  http://127.0.0.1:{port}\n")
+    print(f"  http://127.0.0.1:{port}")
+    sync = SCHEDULER.status()
+    print(f"  document sync: {sync['cron'] + ' (next ' + sync['next_run'] + ')' if sync['enabled'] else 'manual only'}\n")
+    SCHEDULER.start()
     try:
         server.serve_forever()
     except KeyboardInterrupt:

@@ -145,3 +145,40 @@ export async function confirmRelationship(
     return { ok: false, message: error instanceof Error ? error.message : "link failed" }
   }
 }
+
+export type SyncSchedule = {
+  ok: boolean
+  enabled?: boolean
+  cron?: string | null
+  next_run?: string | null
+  last_run?: { started: string; ok: boolean; new?: number; ingested?: number; errors?: number; error?: string } | null
+  message?: string
+}
+
+async function syncScheduleRequest(init?: RequestInit): Promise<SyncSchedule> {
+  try {
+    const response = await fetch(`${API}/api/sync/schedule`, {
+      ...init,
+      headers: { "content-type": "application/json" },
+      cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
+    })
+    const data = (await response.json()) as Omit<SyncSchedule, "ok"> & { error?: string }
+    if (!response.ok) {
+      return { ok: false, message: data.error ?? `schedule returned HTTP ${response.status}` }
+    }
+    return { ok: true, ...data }
+  } catch (error) {
+    return { ok: false, message: error instanceof Error ? error.message : "schedule unavailable" }
+  }
+}
+
+/** Read the backend's cron schedule for automatic document sync. */
+export async function getSyncSchedule(): Promise<SyncSchedule> {
+  return syncScheduleRequest()
+}
+
+/** Set the sync cron expression, or pass "off" to make sync manual-only. */
+export async function setSyncSchedule(cron: string): Promise<SyncSchedule> {
+  return syncScheduleRequest({ method: "POST", body: JSON.stringify({ cron }) })
+}

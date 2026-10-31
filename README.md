@@ -227,6 +227,19 @@ REGULA_LLM_API_KEY=...
 
 Without a key the deterministic pipeline still runs; enrichment fields stay empty.
 
+**Scheduled document sync** runs the same cycle as `POST /api/discover` on a cron schedule.
+Set it in `.env` (five fields, server-local time; empty or `off` means manual only):
+
+```ini
+# every 30 minutes; e.g. 0 9 * * 1-5 for weekdays at 09:00
+REGULA_SYNC_CRON=*/30 * * * *
+# max new directives ingested per run
+REGULA_SYNC_LIMIT=3
+```
+
+Change it at runtime with `POST /api/sync/schedule {"cron": "0 */6 * * *"}`; that lasts until
+restart, after which `.env` applies again.
+
 ## API
 
 | Method | Path | Purpose |
@@ -235,6 +248,8 @@ Without a key the deterministic pipeline still runs; enrichment fields stay empt
 | GET | `/api/changes` | Classified change list with counts by class |
 | GET | `/api/export/{sourceId}.md` | Assessment pack as markdown |
 | POST | `/api/discover` | RSS discovery (RBI + SEBI), dedupe by URL, ingest newest directives |
+| GET | `/api/sync/schedule` | Sync schedule: cron, next run, last run result |
+| POST | `/api/sync/schedule` | Set the sync cron (`{"cron": "..."}`, or `"off"`) |
 | POST | `/api/extract` | Preview text, obligations and the relationship for a pasted document |
 | POST | `/api/sources/upload` | Upload TXT/DOCX/PDF/HTML, relate it, diff it, backfill successors |
 | POST | `/api/sources/{id}/relate` | Re-run relationship inference; `{apply:true}` accepts a link |
