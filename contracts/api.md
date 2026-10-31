@@ -15,7 +15,8 @@ The UI reads exactly one document: `GET /api/state`. This is deliberate. One fet
     "version": "1.0.0-demo",
     "as_of": "2026-10-31",
     "built_at": "2026-10-31T00:19:00+05:30",
-    "scope": "India · RBI / SEBI",
+    "scope": "India · KSA · UAE · South Africa",
+    "regions": ["INDIA", "KSA", "UAE", "SOUTH_AFRICA"],
     "mode": "deterministic"
   },
   "summary": {
@@ -41,6 +42,11 @@ The UI reads exactly one document: `GET /api/state`. This is deliberate. One fet
   "audit_chain": { "ok": true, "checked": 12, "head": "1ff3695bbcc5a8fe" }
 }
 ```
+
+**v1.1 additive fields.** `meta.regions` lists the region codes actually represented in the
+payload (`INDIA`, `KSA`, `UAE`, `SOUTH_AFRICA`); the UI renders exactly these and falls back to
+the full enum only when the field is absent. A region is a country, never a continent — the
+earlier `AFRICA` bucket was replaced by `SOUTH_AFRICA` when SARB was onboarded.
 
 ### Source
 

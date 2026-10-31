@@ -13,7 +13,7 @@
 
 | Brief capability | Today | Gap to close |
 |---|---|---|
-| Monitor ≥4 sources over 4 regions | 3 seeded India docs, no monitor | Source registry (KSA/UAE/INDIA/AFRICA), manual trigger, dedupe, new-vs-processed |
+| Monitor ≥4 sources over 4 regions | 3 seeded India docs, no monitor | Source registry (KSA/UAE/INDIA/SOUTH_AFRICA), manual trigger, dedupe, new-vs-processed |
 | Manual upload PDF/DOCX/TXT | none | Upload endpoint + text extraction (DOCX/TXT solid, PDF best-effort) |
 | Structured extraction with clause refs | obligations + quotes + section refs | applicability, applies_to, references-to-earlier-regs, change class per clause |
 | Historical comparison + 6 change classes | section redline vs prior | classification taxonomy at clause/source level + plain-English significance |
@@ -31,7 +31,7 @@ Each requirement has an ID, an observable acceptance check, and an owner. **A = 
 
 | ID | Requirement | Acceptance (what a judge sees) | Owner |
 |---|---|---|---|
-| R1 | Configure ≥4 regulatory sources across KSA, UAE, India, Africa. | Config screen/table lists SAMA (KSA), CBUAE (UAE), RBI/SEBI (India), CBN (Africa) with authority, region, jurisdiction, frequency. | B (data/config) + C (display) |
+| R1 | Configure ≥4 regulatory sources across KSA, UAE, India, South Africa. | Config screen/table lists SAMA (KSA), CBUAE (UAE), RBI/SEBI (India), SARB (South Africa) with authority, region, jurisdiction, frequency. | B (data/config) + C (display) |
 | R2 | Retrieve newly published documents; identify authority, jurisdiction, pub date, title, ref, effective date. | Each row shows all six fields; missing effective date shows "not stated". | B |
 | R3 | Distinguish new vs already-processed documents. | Run monitor twice: second run reports `new: 0`, `duplicates: n`; UI shows "new" badge only on first. | B |
 | R4 | Manual trigger of a monitoring cycle. | "Run monitoring" button → progress → result summary (`discovered/new/duplicate/errors`) in <2 s. | B (endpoint) + C (panel) |
@@ -77,7 +77,7 @@ Existing fields never change. All new fields optional in the UI.
 
 ```jsonc
 {
-  "region": "KSA",                  // KSA | UAE | INDIA | AFRICA
+  "region": "KSA",                  // KSA | UAE | INDIA | SOUTH_AFRICA
   "authority": "SAMA",              // SAMA | CBUAE | RBI | SEBI | CBN
   "jurisdiction": "Saudi Arabia",
   "doc_type": "amendment",          // circular | amendment | guideline | consultation
@@ -124,7 +124,7 @@ Existing fields never change. All new fields optional in the UI.
 
 ```jsonc
 {
-  "regions": ["KSA", "UAE", "INDIA", "AFRICA"],
+  "regions": ["KSA", "UAE", "INDIA", "SOUTH_AFRICA"],
   "monitor": {
     "configured_sources": 6,
     "frequency_hours": 6,
@@ -168,9 +168,9 @@ Deliverables:
 2. **Data pack** (synthetic but realistic, matching existing style):
    - KSA SAMA — AI in Credit Decisioning (2026) **amend** 2024 AI governance circular.
    - UAE CBUAE — Consumer Protection (2026) **amend** 2024 regulation.
-   - Africa CBN — Cyber/AML (2026) **amend** 2024 framework.
+   - South Africa SARB — Proposed directive on BA returns (2026), issued for consultation.
    - Keep India RBI KYC + RBI Digital Lending + SEBI Cyber.
-   - Prior docs for the three new ones so side-by-side is real.
+   - Prior docs where an earlier version exists so side-by-side is real.
 3. **Monitor** `app/regula/monitor.py`: fetch each configured feed with 3 s timeout → on failure use `app/data/feeds/<id>.txt`; hash-dedupe against repository; mark `first_seen` / `processed_at`; return run stats.
 4. **Upload** `app/regula/upload.py`: `.txt` direct; `.docx` via `zipfile` + XML strip; `.pdf` best-effort text extraction (raw stream scan) or store with `needs_review` flag. Never 500 on a bad file.
 5. **Change classifier** `app/regula/change.py`: redline/param rules → 7 classes; relationship confidence via existing TF-IDF + tag overlap; `<0.45` → `unresolved`.
@@ -182,7 +182,7 @@ Deliverables:
 ### C — UI (Friend A): `web/**` only
 
 Deliverables:
-1. **Dashboard**: region chips (KSA/UAE/INDIA/AFRICA), authority + change-class + business-area filters, date sort, search; KPI row per region; queues: *Awaiting review*, *Unresolved relationship*.
+1. **Dashboard**: region chips (KSA/UAE/INDIA/SOUTH_AFRICA), authority + change-class + business-area filters, date sort, search; KPI row per region; queues: *Awaiting review*, *Unresolved relationship*.
 2. **Monitor strip**: configured-sources count, last/next run, **Run monitoring** button calling `POST /api/monitor/run` with toast + state refresh; **Upload** modal (file → base64 → `POST /api/sources/upload`).
 3. **Source view**: side-by-side prior vs current clause (use `previous_text` + redline), significance sentence, applicability/applies_to/reference chips, change-class badge; keep existing obligation + impact panels.
 4. **Review**: source review button (reviewed/rejected) + audit toast; keep impact approval.
@@ -193,14 +193,18 @@ Deliverables:
 
 ## 5. Data pack spec (B, ship by 12:10)
 
+> **Superseded for Africa.** The pack actually shipped onboards **SARB (South Africa)** as the
+> African regulator — `src-sarb-ba-returns-2026`, region `SOUTH_AFRICA`, discovered from the
+> SARB News and Publications RSS feed. The planned CBN (Nigeria) rows below are kept as the
+> original plan; region `AFRICA` no longer exists because a region is a country, not a continent.
+
 | id | region | authority | doc_type | title | prior |
 |---|---|---|---|---|---|
 | `src-sama-ai-2026` | KSA | SAMA | amendment | AI in Credit Decisioning — Amendment 2026 | `src-sama-ai-2024` |
 | `src-sama-ai-2024` | KSA | SAMA | circular | AI & Model Risk Governance Circular 2024 | — |
 | `src-cbuae-cp-2026` | UAE | CBUAE | amendment | Consumer Protection — Amendment 2026 | `src-cbuae-cp-2024` |
 | `src-cbuae-cp-2024` | UAE | CBUAE | regulation | Consumer Protection Regulation 2024 | — |
-| `src-cbn-cyber-2026` | AFRICA | CBN | amendment | Cyber & AML — Amendment 2026 | `src-cbn-cyber-2024` |
-| `src-cbn-cyber-2024` | AFRICA | CBN | framework | Cyber & AML Framework 2024 | — |
+| `src-sarb-ba-returns-2026` | SOUTH_AFRICA | SARB | consultation | Proposed Directive on BA Returns 2026 | — |
 | `src-kyc-2026` | INDIA | RBI | amendment | KYC Amendment 2026 | `rbi_kyc_2024` |
 | `src-dl-2026` | INDIA | RBI | amendment | Digital Lending Amendment 2026 | — |
 | `src-sebi-2026` | INDIA | SEBI | amendment | SEBI Cyber Framework 2026 | — |
@@ -252,7 +256,7 @@ Each new circular: 12–18 clauses, at least one numeric threshold change, one n
 
 | Decision | Why |
 |---|---|
-| Africa = CBN (Nigeria), configurable for SARB/BoG | English docs, plausible BFSI regulator; swap is a JSON row |
+| South Africa = SARB (Prudential Authority) | English docs, real RSS feed; another African regulator is a JSON row + feed entry |
 | Offline mirror for feeds, live fetch best-effort | Venue Wi-Fi risk; demo must be deterministic |
 | JSON+base64 upload, not multipart | stdlib-only server; one code path for all three file types |
 | LLM enrichments cached | Demo runs without network/model; AI is additive, not load-bearing |

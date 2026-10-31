@@ -32,6 +32,9 @@ def load_seed() -> tuple[list[dict], list[dict], dict[str, str], dict[str, str]]
 
 def build_state() -> dict:
     sources, assets, docs, priors = load_seed()
+    # Regions actually represented in the seed, in source order. The dashboard
+    # renders `meta.regions` when present, so an empty region is never claimed.
+    regions = list(dict.fromkeys((s.get("region") or "INDIA") for s in sources))
     state: dict = {
         "meta": {
             "org": "Meridian Bank",
@@ -40,7 +43,8 @@ def build_state() -> dict:
             "version": "1.0.0-demo",
             "as_of": date.today().isoformat(),
             "built_at": audit.now_iso(),
-            "scope": "India · RBI / SEBI",
+            "scope": "India · KSA · UAE · South Africa",
+            "regions": regions,
             "mode": "deterministic",
         },
         "sources": sources,
@@ -57,14 +61,17 @@ def build_state() -> dict:
         text = docs[source["doc"]]
         state["documents"].append({
             "id": source["id"],
+            "source_id": source["id"],
             "doc": source["doc"],
             "feed_id": None,
-            "authority": source["regulator"],
-            "region": "INDIA",
+            "authority": source.get("authority") or source["regulator"],
+            "region": source.get("region") or "INDIA",
+            "jurisdiction": source.get("jurisdiction") or "",
             "title": source["title"],
             "ref": source["ref"],
             "published": source["published"],
             "effective": source["effective"],
+            "url": source.get("url") or "",
             "hash": hashlib.sha256(text.encode("utf-8")).hexdigest(),
             "transport": "seed",
             "first_seen": audit.now_iso(),
@@ -82,14 +89,17 @@ def build_state() -> dict:
         text = priors[prior_doc]
         state["documents"].append({
             "id": f"doc-prior-{source['id']}",
+            "source_id": None,
             "doc": prior_doc,
             "feed_id": None,
-            "authority": source["regulator"],
-            "region": "INDIA",
+            "authority": source.get("authority") or source["regulator"],
+            "region": source.get("region") or "INDIA",
+            "jurisdiction": source.get("jurisdiction") or "",
             "title": f"{source['title']} — prior version",
             "ref": "",
             "published": "",
             "effective": "",
+            "url": "",
             "hash": hashlib.sha256(text.encode("utf-8")).hexdigest(),
             "transport": "seed",
             "first_seen": audit.now_iso(),

@@ -1,10 +1,14 @@
-"""RSS-based discovery for the India regulators.
+"""RSS-based discovery for the monitored regulators.
 
-Neither RBI nor SEBI offers a public JSON API for publications. Both publish
-RSS feeds, which is the supported discovery surface:
+RBI and SEBI publish RSS feeds for their publications; SARB does the same for
+its News and Publications list. SAMA and CBUAE publish through HTML rulebooks,
+so their listing pages are parsed instead. The supported discovery surfaces:
 
     RBI  — https://rbi.org.in/notifications_rss.xml
     SEBI — https://www.sebi.gov.in/sebirss.xml
+    SARB — https://www.resbank.co.za/bin/sarb/solr/publications/rss
+    SAMA — https://rulebook.sama.gov.sa/en/sama-circulars      (HTML)
+    CBUAE — https://rulebook.centralbank.ae/en                 (HTML)
 
 Each feed item becomes a repository document with title, link, publication
 date, authority and region. Items are deduplicated by canonical URL, so a
@@ -22,6 +26,7 @@ import xml.etree.ElementTree as ET
 from datetime import date, datetime, timedelta
 from email.utils import parsedate_to_datetime
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from . import audit
 from .ingest import parse_document
@@ -30,9 +35,13 @@ DATA = Path(__file__).resolve().parent.parent / "data"
 REF_RE = re.compile(r"\b(?:RBI|SEBI)/[A-Za-z0-9/\-]{4,40}")
 # Not every notification is a directive: sanctions lists and press releases are
 # recorded as references but never queued as an analysable source.
-REGULATORY_RE = re.compile(r"direction|guideline|circular|master direction|amendment|regulation|framework", re.I)
+REGULATORY_RE = re.compile(
+    r"direction|directive|guideline|circular|master direction|amendment|regulation|framework|prudential standard",
+    re.I,
+)
 
-# Configured India feeds. `enabled` lets a demo run with only one authority.
+# Configured feeds per monitored jurisdiction. `enabled` lets a demo run with a
+# single authority; `seeds` keep a publication visible when a site is unreachable.
 FEEDS: list[dict] = [
     {
         "id": "rbi-notifications",
@@ -90,7 +99,36 @@ FEEDS: list[dict] = [
             }
         ],
     },
+    {
+        # SARB publishes a real "News and Publications" RSS feed from its AEM
+        # site. Items link to relative publication pages, resolved against the
+        # homepage. The seed keeps the Prudential Authority directive visible
+        # when the feed is unavailable.
+        "id": "sarb-publications",
+        "authority": "SARB",
+        "region": "SOUTH_AFRICA",
+        "name": "SARB News and Publications",
+        "kind": "rss",
+        "url": "https://www.resbank.co.za/bin/sarb/solr/publications/rss",
+        "homepage": "https://www.resbank.co.za",
+        "enabled": True,
+        "seeds": [
+            {
+                "title": "Proposed directive relating to the version of BA returns that form the basis for reporting by auditors",
+                "url": "https://www.resbank.co.za/en/home/publications/publication-detail-pages/prudential-authority/pa-documents-issued-for-consultation/2026/proposed-directive-relating-to-the-version-of-ba-returns",
+                "published": "2026-10-21",
+            }
+        ],
+    },
 ]
+
+# A discovered document has no jurisdiction field; derive it from its region.
+JURISDICTION: dict[str, str] = {
+    "INDIA": "India",
+    "KSA": "Saudi Arabia",
+    "UAE": "United Arab Emirates",
+    "SOUTH_AFRICA": "South Africa",
+}
 
 UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -101,6 +139,19 @@ TIMEOUT = 12.0
 
 def _clean(value: str | None) -> str:
     return re.sub(r"\s+", " ", value or "").strip()
+
+
+def _absolute(url: str, base: str) -> str:
+    """Anchor site-relative feed links to the feed's own host (SARB emits these)."""
+    url = _clean(url)
+    if not url:
+        return ""
+    if url.startswith("//"):
+        return "https:" + url
+    if url.startswith("/"):
+        root = urlsplit(base)
+        return f"{root.scheme or 'https'}://{root.netloc}{url}"
+    return url
 
 
 def parse_date(value: str) -> str:
@@ -128,10 +179,11 @@ def parse_feed(raw: bytes | str, feed: dict) -> list[dict]:
     items: list[dict] = []
     for item in root.iter("item"):
         title = _clean(item.findtext("title"))
-        link = _clean(item.findtext("link"))
+        base = feed.get("homepage") or feed["url"]
+        link = _absolute(item.findtext("link") or "", base)
         if not link:
             # Some feeds use guid as the permalink.
-            link = _clean(item.findtext("guid"))
+            link = _absolute(item.findtext("guid") or "", base)
         if not title or not link:
             continue
         items.append({
@@ -348,6 +400,7 @@ def ingest_new(state: dict, limit: int = 3, actor: str = "Discovery Service") ->
         match = REF_RE.search(text)
         ref = match.group(0) if match else ""
         effective, assumed = _effective(doc.get("published") or "")
+        region = doc.get("region") or "INDIA"
         source = {
             "id": source_id,
             "regulator": doc.get("authority") or "RBI",
@@ -360,9 +413,9 @@ def ingest_new(state: dict, limit: int = 3, actor: str = "Discovery Service") ->
             "status": "new",
             "risk": "medium",
             "owner": "Unassigned",
-            "region": doc.get("region") or "INDIA",
+            "region": region,
             "authority": doc.get("authority") or "RBI",
-            "jurisdiction": "India",
+            "jurisdiction": JURISDICTION.get(region, "India"),
             "doc_type": "circular",
             "url": doc.get("url"),
             "doc": f"discovered/{source_id}.txt",

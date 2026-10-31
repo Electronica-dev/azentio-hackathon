@@ -137,13 +137,13 @@ export const DASHBOARD_STATE_ORDER: DashboardState[] = [
 /** R15 requires a threshold below which the relationship is considered unreliable. */
 export const RELATIONSHIP_CONFIDENCE_FLOOR = 0.45
 
-const REGIONS: Region[] = ["KSA", "UAE", "INDIA", "AFRICA"]
+const REGIONS: Region[] = ["KSA", "UAE", "INDIA", "SOUTH_AFRICA"]
 
 export const REGION_LABEL: Record<Region, string> = {
   KSA: "Saudi Arabia",
   UAE: "United Arab Emirates",
   INDIA: "India",
-  AFRICA: "Africa",
+  SOUTH_AFRICA: "South Africa",
 }
 
 /** Business areas for the "applicability" facet (R9 taxonomy). */
@@ -211,6 +211,8 @@ export function authorityOf(source: Source): string {
 /**
  * Region is explicit in v1.1. Under the frozen contract we fall back to the
  * regulator → region map so India's RBI/SEBI documents still group correctly.
+ * AFRICA is not a country, so each African regulator maps to its own country
+ * region (SARB → SOUTH_AFRICA); an unknown authority lands on "OTHER".
  */
 export function regionOf(source: Source): Region | "OTHER" {
   if (source.region && (REGIONS as string[]).includes(source.region)) return source.region as Region
@@ -222,8 +224,8 @@ export function regionOf(source: Source): Region | "OTHER" {
     case "RBI":
     case "SEBI":
       return "INDIA"
-    case "CBN":
-      return "AFRICA"
+    case "SARB":
+      return "SOUTH_AFRICA"
     default:
       return "OTHER"
   }
@@ -302,7 +304,7 @@ export function regionChipClass(region: Region | "OTHER"): string {
       return "border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-300"
     case "INDIA":
       return "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300"
-    case "AFRICA":
+    case "SOUTH_AFRICA":
       return "border-violet-200 bg-violet-50 text-violet-800 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-300"
     default:
       return NEUTRAL

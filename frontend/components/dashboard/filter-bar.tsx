@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CHANGE_CLASS } from "@/lib/domain"
+import { CHANGE_CLASS, REGION_LABEL } from "@/lib/domain"
 import type { Dashboard, Filters, SortKey } from "@/lib/domain"
 import { plural } from "@/lib/format"
 
@@ -99,7 +99,10 @@ export function FilterBar({
           value={filters.region}
           allLabel="All countries"
           options={[
-            ...regions.map((region) => ({ value: region, label: region })),
+            ...regions.map((region) => ({
+              value: region,
+              label: region in REGION_LABEL ? REGION_LABEL[region as keyof typeof REGION_LABEL] : region,
+            })),
             ...(hasRegionOther ? [{ value: "OTHER", label: "Other" }] : []),
           ]}
         />

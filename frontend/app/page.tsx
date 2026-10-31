@@ -9,7 +9,7 @@ import { getRegulaState } from "@/lib/state"
 export const metadata: Metadata = {
   title: "Regulatory Intelligence Dashboard · Regula",
   description:
-    "Regulatory developments across KSA, UAE, India and Africa — by country, regulator, publication date, business area and change classification.",
+    "Regulatory developments across Saudi Arabia, the UAE, India and South Africa — by country, regulator, publication date, business area and change classification.",
 }
 
 /**

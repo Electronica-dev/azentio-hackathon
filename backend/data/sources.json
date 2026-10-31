@@ -113,5 +113,27 @@
     "prior_doc": null,
     "summary": "Discovered from the CBUAE Rulebook. Guidance on liquidity regulations for banks in the UAE; full text is fetched by the ingestion step, so obligations are not extracted yet.",
     "tags": ["liquidity", "banking", "guidance"]
+  },
+  {
+    "id": "src-sarb-ba-returns-2026",
+    "regulator": "SARB",
+    "ref": "SARB PA — proposed directive on BA returns",
+    "title": "Proposed Directive on the Version of BA Returns that Form the Basis for Reporting by Auditors",
+    "short_title": "SARB BA Returns Directive",
+    "published": "2026-10-21",
+    "effective": "2027-03-31",
+    "effective_assumed": true,
+    "status": "new",
+    "risk": "high",
+    "owner": "Unassigned",
+    "region": "SOUTH_AFRICA",
+    "authority": "SARB",
+    "jurisdiction": "South Africa",
+    "doc_type": "consultation",
+    "url": "https://www.resbank.co.za/en/home/publications/publication-detail-pages/prudential-authority/pa-documents-issued-for-consultation/2026/proposed-directive-relating-to-the-version-of-ba-returns",
+    "doc": "sarb_ba_returns_directive.txt",
+    "prior_doc": null,
+    "summary": "Discovered from the SARB News and Publications feed. Prudential Authority proposal issued in terms of section 6(6) of the Banks Act 94 of 1990 on the version of BA returns that form the basis for auditor reporting under Regulation 46; full text is fetched by the ingestion step, so obligations are not extracted yet.",
+    "tags": ["reporting", "banks act", "auditors", "prudential authority"]
   }
 ]

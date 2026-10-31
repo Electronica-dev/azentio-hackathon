@@ -79,11 +79,12 @@ flowchart LR
 | India | SEBI | https://www.sebi.gov.in/ | RSS: https://www.sebi.gov.in/sebirss.xml |
 | KSA | SAMA | https://rulebook.sama.gov.sa/ | Rulebook circular listing (no RSS) |
 | UAE | CBUAE | https://rulebook.centralbank.ae/ | Rulebook listing (no RSS; seed fallback) |
+| South Africa | SARB | https://www.resbank.co.za/ | RSS: https://www.resbank.co.za/bin/sarb/solr/publications/rss |
 
-Neither Indian regulator publishes a JSON API; both publish RSS, which `POST /api/discover`
-consumes. SAMA and CBUAE publish through rulebooks instead — the discovery step parses their
-listing pages and falls back to a seeded publication when the site is unavailable, so the
-repository always carries the configured jurisdictions.
+The Indian and South African regulators publish RSS feeds, which `POST /api/discover`
+consumes. SAMA and CBUAE publish through HTML rulebooks instead — the discovery step parses
+their listing pages and falls back to a seeded publication when the site is unavailable, so
+the repository always carries the configured jurisdictions.
 
 The committed demo documents are the RBI **Digital Lending** pair:
 
@@ -130,6 +131,7 @@ run.cmd                 :: starts backend/serve.py on :8787
 python backend\serve.py --reset
 python backend\scrape.py            :: refresh the India sources
 python backend\scrape.py --check    :: fetch and compare without writing
+python backend\export_mock.py       :: regenerate the offline fixtures
 ```
 
 **Frontend** (Next.js):

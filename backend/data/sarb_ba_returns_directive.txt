@@ -1,0 +1,15 @@
+SARB — South African Reserve Bank (Prudential Authority)
+Rulebook publication (metadata record)
+
+Title: Proposed Directive on the Version of BA Returns that Form the Basis for Reporting by Auditors
+Authority: SARB
+Jurisdiction: South Africa
+Source: https://www.resbank.co.za/en/home/publications/publication-detail-pages/prudential-authority/pa-documents-issued-for-consultation/2026/proposed-directive-relating-to-the-version-of-ba-returns
+Listing: https://www.resbank.co.za/en/home/publications
+
+Status: discovered from the SARB News and Publications feed. The proposed directive
+is issued in terms of section 6(6) of the Banks Act 94 of 1990 and covers the version
+of BA returns that form the basis for reporting by auditors under Regulation 46 of
+the Regulations relating to Banks. Full text is fetched on demand by the ingestion
+step; this record exists so the publication is visible in the repository before
+extraction.

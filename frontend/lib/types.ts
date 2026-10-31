@@ -9,7 +9,7 @@
  * neutral chip").
  */
 
-export type Region = "KSA" | "UAE" | "INDIA" | "AFRICA"
+export type Region = "KSA" | "UAE" | "INDIA" | "SOUTH_AFRICA"
 
 /** Display metadata for a domain enum value: human label + shadcn Badge classes. */
 export type Chip = { label: string; short: string; className: string }

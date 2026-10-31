@@ -11,7 +11,7 @@ const REGION_NAMES: Record<string, string> = {
   KSA: "Saudi Arabia",
   UAE: "UAE",
   INDIA: "India",
-  AFRICA: "Africa",
+  SOUTH_AFRICA: "South Africa",
   OTHER: "Other",
 }
 

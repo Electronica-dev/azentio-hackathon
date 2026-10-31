@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Regula · Regulatory Change Impact Agent",
   description:
-    "Regulatory Intelligence Dashboard for AI and BFSI compliance teams — monitor KSA, UAE, India and Africa regulators, extract obligations and compare regulatory changes.",
+    "Regulatory Intelligence Dashboard for AI and BFSI compliance teams — monitor regulators in Saudi Arabia, the UAE, India and South Africa, extract obligations and compare regulatory changes.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
