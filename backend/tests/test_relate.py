@@ -204,6 +204,28 @@ class ExtractTests(unittest.TestCase):
         self.assertEqual(out["relationship"]["prior_source_id"], "src-kyc-2026")
         self.assertEqual(out["source"]["ref"], "RBI/2028-29/04")
 
+    def test_title_prefers_the_filename_over_a_mentioned_act(self):
+        text = (
+            "COPYRIGHT:\nThis work has been transmitted to you as a subscriber.\n\n"
+            "MUTUAL BANKS ACT 124 OF 1993\n\n"
+            "Financial Sector Regulation Act 9 of 2017\n"
+        )
+        self.assertEqual(
+            upload._title(text, "mutual-banks-act-124-of-1993-v3.pdf"),
+            "MUTUAL BANKS ACT 124 OF 1993",
+        )
+
+    def test_pdf_falls_back_when_the_library_is_unavailable(self):
+        raw = b"%PDF-1.4\n1 0 obj\n<<>>\nstream\nBT /F1 12 Tf (Digital Lending Amendment 2026) Tj ET\nendstream\n%%EOF"
+        original = upload._pdf_with_pypdf
+        upload._pdf_with_pypdf = lambda _raw: ""
+        try:
+            text, kind = upload.extract("amendment.pdf", raw)
+        finally:
+            upload._pdf_with_pypdf = original
+        self.assertIn("Digital Lending", text)
+        self.assertIn(kind, ("pdf", "needs_ocr"))
+
     def test_scanned_pdf_yields_a_friendly_error(self):
         raw = b"%PDF-1.4\n1 0 obj\n<<>>\nstream\nnot compressed\nendstream\n%%EOF"
         with self.assertRaises(ValueError) as ctx:

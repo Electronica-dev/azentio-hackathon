@@ -1,0 +1,6 @@
+# Optional extras. The backend runs on the Python standard library alone; this
+# only improves PDF text extraction for real-world files that encode text as
+# CID/Identity-H glyphs (pypdf resolves the ToUnicode CMaps).
+#
+#     python -m pip install -r backend/requirements.txt
+pypdf>=5,<7

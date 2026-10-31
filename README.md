@@ -172,6 +172,7 @@ records the source URL and content hash.
 backend/
   serve.py              stdlib JSON API
   scrape.py             automated fetch + extraction for configured sources
+  requirements.txt      optional: pypdf for real-world PDF text
   regula/
     ingest.py           clause parsing, prior alignment, redline
     extract.py          obligations with quotes, params, deadlines
@@ -199,11 +200,12 @@ docs/                   requirements, plan, demo script
 
 ## Run it
 
-**Backend** (Python stdlib only):
+**Backend** (Python stdlib; `pypdf` optional for PDF text):
 
 ```bat
 run.cmd                 :: starts backend/serve.py on :8787
 python backend\serve.py --reset
+python -m pip install -r backend\requirements.txt   :: optional, real-world PDFs
 python backend\scrape.py            :: refresh the India sources
 python backend\scrape.py --check    :: fetch and compare without writing
 python backend\export_mock.py       :: regenerate the offline fixtures
@@ -272,10 +274,11 @@ library is a curated model of a mid-size Indian bank's KYC and lending stack, no
 from a GRC system. The optional LLM is used for alignment, classification and significance;
 every obligation still carries a verbatim quote and clause reference.
 
-Known limits: PDF text extraction is best-effort - a scanned PDF is accepted and flagged
-`needs_ocr` rather than guessed at; SEBI monitoring is configured but not yet fetched live; the
-relationship weights are hand-tuned for the demo and exposed as constants in `relate.py`; and
-approval is a demo identity rather than SSO.
+Known limits: PDF text extraction uses `pypdf` when it is installed - real-world PDFs that store
+text as CID/Identity-H glyphs need it, and the stdlib fallback only reads simple literal-string
+PDFs; a scanned, image-only PDF is accepted and flagged `needs_ocr` rather than guessed at. SEBI
+monitoring is configured but not yet fetched live; the relationship weights are hand-tuned for the
+demo and exposed as constants in `relate.py`; and approval is a demo identity rather than SSO.
 
 Roadmap: OCR for scanned PDFs, live SEBI ingestion, scheduled monitoring, control-library
 import, reviewer workflow and a labelled relationship benchmark.

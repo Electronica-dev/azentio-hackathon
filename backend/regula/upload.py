@@ -126,6 +126,32 @@ _PDF_STRING = re.compile(rb"\((?:\\.|[^\\()])*\)", re.S)
 
 
 def _pdf(raw: bytes) -> str:
+    """PDF text via pypdf when available, else the stdlib reader.
+
+    pypdf handles the common real-world encoding (Type0/Identity-H fonts with a
+    ToUnicode CMap) that the fallback cannot. Keeping the fallback means the
+    backend still runs, and still reads simple PDFs, with no packages installed.
+    """
+    text = _pdf_with_pypdf(raw)
+    return text if text.strip() else _pdf_fallback(raw)
+
+
+def _pdf_with_pypdf(raw: bytes) -> str:
+    try:
+        from pypdf import PdfReader  # optional dependency
+    except ImportError:
+        return ""
+    try:
+        reader = PdfReader(io.BytesIO(raw))
+        if reader.is_encrypted and not reader.decrypt(""):
+            return ""
+        text = "\n".join((page.extract_text() or "") for page in reader.pages)
+        return _normalise(text)[:200_000]
+    except Exception:  # noqa: BLE001 - malformed PDF: fall through to the fallback
+        return ""
+
+
+def _pdf_fallback(raw: bytes) -> str:
     """Best-effort PDF text: inflate streams, then read text operators."""
     chunks: list[bytes] = [raw]
     for match in re.finditer(rb"stream\r?\n(.*?)endstream", raw, re.S):
@@ -189,6 +215,23 @@ def _title(text: str, filename: str) -> str:
         and not REF_RE.search(line)
         and not (DATE_RE.search(line) and len(line) < 30)
     ]
+
+    # A filename usually names the instrument more reliably than the first line
+    # that happens to contain a regulatory noun. This matters for compilations,
+    # where an amending Act is mentioned before the Act itself.
+    stem_words = {
+        word for word in re.split(r"[^a-z0-9]+", Path(filename or "").stem.lower())
+        if len(word) > 2 and not word.isdigit()
+        and word not in {"pdf", "docx", "final", "draft", "copy", "version"}
+    }
+    if stem_words and candidates:
+        def affinity(line: str) -> int:
+            return len(stem_words & set(re.findall(r"[a-z0-9]+", line.lower())))
+
+        best = max(candidates, key=affinity)
+        if affinity(best) >= 2:
+            return best[:200]
+
     for index, line in enumerate(candidates):
         if TITLE_RE.search(line):
             subtitle = ""
