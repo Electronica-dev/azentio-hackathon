@@ -231,3 +231,72 @@ export async function addOrgRecords(
 export async function deleteOrgRecord(kind: "documents" | "assets" | "people", id: string): Promise<OrgResult> {
   return orgRequest(`${kind}/${encodeURIComponent(id)}/delete`, {})
 }
+
+export type Level2Result = { ok: boolean; message?: string; analysisId?: string }
+
+/** Run the Level 2 mapping → gap → draft pass over the analysed obligations. */
+export async function runLevel2Analysis(sourceId?: string): Promise<Level2Result> {
+  try {
+    const response = await fetch(`${API}/api/level2/analyses`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ regulatory_source_id: sourceId || undefined, actor: "Compliance reviewer" }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(180_000),
+    })
+    const data = (await response.json().catch(() => null)) as
+      | { analysis?: { id?: string }; error?: string }
+      | null
+    if (!response.ok) return { ok: false, message: data?.error ?? `analysis returned HTTP ${response.status}` }
+    revalidatePath("/assessments")
+    return { ok: true, analysisId: data?.analysis?.id }
+  } catch (error) {
+    return { ok: false, message: error instanceof Error ? error.message : "analysis failed" }
+  }
+}
+
+/** Edit a draft recommendation. Only drafts are editable; the backend enforces it. */
+export async function saveRecommendation(
+  id: string,
+  patch: { proposed_text?: string; title?: string; implementation_notes?: string; business_area?: string; acceptance_criteria?: string[] },
+): Promise<Level2Result> {
+  try {
+    const response = await fetch(`${API}/api/level2/recommendations/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...patch, actor: "Compliance reviewer" }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    })
+    const data = (await response.json().catch(() => null)) as { error?: string } | null
+    if (!response.ok) return { ok: false, message: data?.error ?? `save returned HTTP ${response.status}` }
+    revalidatePath("/assessments")
+    return { ok: true }
+  } catch (error) {
+    return { ok: false, message: error instanceof Error ? error.message : "save failed" }
+  }
+}
+
+/** Approve or reject a draft. The role is verified by the backend. */
+export async function reviewRecommendation(
+  id: string,
+  decision: "approve" | "reject",
+  role: "reviewer" | "admin",
+  note: string,
+): Promise<Level2Result> {
+  try {
+    const response = await fetch(`${API}/api/level2/recommendations/${encodeURIComponent(id)}/review`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ decision, role, note, actor: "Compliance reviewer" }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    })
+    const data = (await response.json().catch(() => null)) as { error?: string } | null
+    if (!response.ok) return { ok: false, message: data?.error ?? `review returned HTTP ${response.status}` }
+    revalidatePath("/assessments")
+    return { ok: true }
+  } catch (error) {
+    return { ok: false, message: error instanceof Error ? error.message : "review failed" }
+  }
+}

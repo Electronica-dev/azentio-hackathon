@@ -2,12 +2,13 @@ import Link from "next/link"
 
 import { cn } from "@/lib/utils"
 
-export type Section = "home" | "regulatory" | "organisation"
+export type Section = "home" | "regulatory" | "organisation" | "assessments"
 
 const LINKS: { key: Section; href: string; label: string }[] = [
   { key: "home", href: "/", label: "Home" },
   { key: "regulatory", href: "/regulatory", label: "Regulatory" },
   { key: "organisation", href: "/organisation", label: "Organisation" },
+  { key: "assessments", href: "/assessments", label: "Assessments" },
 ]
 
 /** Main navigation. The page says which section it is in, so this stays static. */
