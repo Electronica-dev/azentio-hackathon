@@ -13,7 +13,7 @@ from urllib.parse import urlparse, unquote, parse_qs
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
-from regula import audit, changes, chunks, extract_api, level2, org, pipeline, relate, rss, schedule, store, upload  # noqa: E402
+from regula import assignment, audit, changes, chunks, extract_api, level2, org, pipeline, relate, rss, schedule, store, upload  # noqa: E402
 
 WEB = ROOT.parent / "web"
 LOCK = threading.Lock()
@@ -198,12 +198,26 @@ class Handler(BaseHTTPRequestHandler):
             with LOCK:
                 try:
                     result = level2.analyse(STATE, body, actor=body.get("actor") or "Regula Agent")
+                    owners = assignment.apply_register(result["id"])
+                    result = {**level2.get_analysis(result["id"]), "owners": owners}
                     store.save(STATE)
                 except ValueError as exc:
                     return self._json(400, {"error": str(exc)})
                 except Exception as exc:  # noqa: BLE001 - analysis is user-triggered
                     return self._json(400, {"error": f"analysis failed: {exc}"})
             return self._json(201, {"analysis": result})
+
+        if parts[:3] == ["api", "level2", "analyses"] and len(parts) == 5 and parts[4] == "assign-owners":
+            body = self._body()
+            with LOCK:
+                try:
+                    owners = assignment.apply_register(parts[3])
+                except assignment.AssignmentError as exc:
+                    return self._json(exc.status, {"error": str(exc)})
+                audit.add(STATE, body.get("actor") or "Regula Agent", "level2.assignment.matched", parts[3],
+                          f"{owners['assigned']} matched from the register · {owners['flagged']} flagged for manual assignment")
+                store.save(STATE)
+            return self._json(200, owners)
 
         if parts[:3] == ["api", "level2", "recommendations"] and len(parts) == 5 and parts[4] == "review":
             body = self._body()
@@ -365,6 +379,16 @@ class Handler(BaseHTTPRequestHandler):
     def do_PATCH(self) -> None:
         path = unquote(urlparse(self.path).path)
         parts = [p for p in path.split("/") if p]
+        if parts[:3] == ["api", "level2", "recommendations"] and len(parts) == 5 and parts[4] == "assignment":
+            body = self._body()
+            with LOCK:
+                try:
+                    result, detail = assignment.update(parts[3], body)
+                except assignment.AssignmentError as exc:
+                    return self._json(exc.status, {"error": str(exc)})
+                audit.add(STATE, body["actor"], "level2.assignment.updated", parts[3], detail)
+                store.save(STATE)
+            return self._json(200, {"assignment": result})
         if parts[:3] == ["api", "level2", "recommendations"] and len(parts) == 4:
             body = self._body()
             with LOCK:

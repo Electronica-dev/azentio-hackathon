@@ -300,3 +300,50 @@ export async function reviewRecommendation(
     return { ok: false, message: error instanceof Error ? error.message : "review failed" }
   }
 }
+
+// Level 2: impact analysis, owners and actions. The reviewer identity is fixed
+// until the app has sign-in; the backend requires role reviewer|admin.
+const REVIEWER = { actor: "Compliance reviewer", role: "reviewer" } as const
+
+export type ImpactResult = { ok: boolean; message?: string; id?: string }
+
+async function level2Request(path: string, method: "POST" | "PATCH", body: unknown): Promise<ImpactResult> {
+  try {
+    const response = await fetch(`${API}/api/level2/${path}`, {
+      method,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+      cache: "no-store",
+      signal: AbortSignal.timeout(120_000),
+    })
+    const data = (await response.json().catch(() => null)) as { error?: string; analysis?: { id?: string } } | null
+    if (!response.ok) return { ok: false, message: data?.error ?? `request returned HTTP ${response.status}` }
+    revalidatePath("/", "layout")
+    return { ok: true, id: data?.analysis?.id }
+  } catch (error) {
+    return { ok: false, message: error instanceof Error ? error.message : "request failed" }
+  }
+}
+
+/** Map obligations to internal clauses, assess gaps, draft changes, then match owners from the register. */
+export async function runImpactAnalysis(scope: { regulatory_source_id: string } | { obligation_ids: string[] }) {
+  return level2Request("analyses", "POST", { ...scope, actor: REVIEWER.actor })
+}
+
+/** Re-run the ownership register lookup, e.g. after importing people. Never overwrites a reviewer's choice. */
+export async function matchOwners(analysisId: string) {
+  return level2Request(`analyses/${encodeURIComponent(analysisId)}/assign-owners`, "POST", { actor: REVIEWER.actor })
+}
+
+export async function updateAssignment(
+  recommendationId: string,
+  patch: {
+    owner_id?: string | null
+    confirm?: boolean
+    due_date?: string | null
+    implementation_status?: string | null
+    priority_override?: string | null
+  },
+) {
+  return level2Request(`recommendations/${encodeURIComponent(recommendationId)}/assignment`, "PATCH", { ...patch, ...REVIEWER })
+}
