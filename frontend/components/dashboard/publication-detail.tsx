@@ -37,6 +37,7 @@ function RelationshipPanel({ detail }: { detail: SourceDetail }) {
   const { relationship } = row
   const unresolved = isUnresolvedRelationship(row.source)
   const confidence = typeof relationship.confidence === "number" ? relationship.confidence : null
+  const linkedWithoutSource = Boolean(relationship.prior_ref) && (relationship.status === "linked" || relationship.status === "standalone")
 
   if (unresolved) {
     return (
@@ -109,6 +110,36 @@ function RelationshipPanel({ detail }: { detail: SourceDetail }) {
           Prior: {prior.short_title || prior.title}
           <ExternalLinkIcon className="size-3" aria-hidden />
         </Link>
+      </div>
+    )
+  }
+
+  if (linkedWithoutSource) {
+    return (
+      <div className="rounded-lg border border-blue-200 bg-blue-50/60 px-3 py-2.5 dark:border-blue-500/30 dark:bg-blue-500/10">
+        <div className="flex items-center gap-1.5 font-heading text-xs font-semibold text-blue-800 dark:text-blue-300">
+          <GitCompareArrowsIcon className="size-3.5" aria-hidden />
+          Compared against a prior regulation
+        </div>
+        <p className="mt-1 text-xs leading-relaxed text-blue-900/80 dark:text-blue-200/80">
+          {relationship.rationale ?? "A prior regulation was identified for this publication."}
+        </p>
+        <dl className="mt-2 grid gap-1 text-[11px]">
+          <div className="flex gap-2">
+            <dt className="w-20 shrink-0 text-muted-foreground">Prior document</dt>
+            <dd className="font-mono font-medium">{relationship.prior_ref}</dd>
+          </div>
+          {confidence !== null ? (
+            <div className="flex gap-2">
+              <dt className="w-20 shrink-0 text-muted-foreground">Confidence</dt>
+              <dd className="font-medium tabular-nums">{Math.round(confidence * 100)}%</dd>
+            </div>
+          ) : null}
+        </dl>
+        <p className="mt-2 text-[10px] leading-relaxed text-blue-900/70 dark:text-blue-200/70">
+          The prior document is held as source text for the comparison; it is not a separate publication in the
+          repository.
+        </p>
       </div>
     )
   }

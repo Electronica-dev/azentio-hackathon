@@ -8,30 +8,40 @@ Built for the Azentio.ai Build Labs hackathon, Challenge 02.
 
 ---
 
-## Run it (no install, no build)
+## Run it
+
+**Backend** — Python stdlib only, no install:
 
 ```bat
-run.cmd
+run.cmd        :: legacy entry point, now starts backend/serve.py on :8787
 ```
 
-Then open **http://127.0.0.1:8787**.
+Or directly: `python backend\serve.py --reset` (rebuilds the demo workspace from seed).
 
-Requirements: Python 3.11+ (tested on 3.14). No pip, no npm, no internet, no model API key.
+**Frontend** — Next.js dashboard, one install:
 
 ```bat
-python app\serve.py --reset     :: rebuild the demo workspace from seed
-python app\export_mock.py       :: regenerate web/mock/state.json for offline FE work
-python app\tests\test_engine.py :: engine tests
+cd frontend
+npm ci
+npm run dev    :: http://localhost:3000
 ```
 
-The frontend is plain ES modules. To work on it without the API:
+The frontend reads `GET http://127.0.0.1:8787/api/state` server-side and falls back to
+`frontend/mock/state.json` with a visible degraded banner when the API is down.
 
-```bat
-cd web
-python -m http.server 5500
+**AI enrichment** (clause alignment, change class, plain-English significance) is a direct
+OpenAI-compatible call. Put the key in the repo-root `.env`:
+
+```ini
+REGULA_LLM_BASE_URL=https://openrouter.ai/api/v1
+REGULA_LLM_MODEL=z-ai/glm-5.3-flash
+REGULA_LLM_API_KEY=...
 ```
 
-Open `http://127.0.0.1:5500/?mock=1` — it loads `web/mock/state.json`.
+Without a key the pipeline still runs; enrichment fields simply stay empty.
+
+`app/` and `web/` are the original zero-build prototype, kept for reference. `backend/` +
+`frontend/` are the canonical application.
 
 ---
 

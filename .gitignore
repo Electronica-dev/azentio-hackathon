@@ -25,3 +25,4 @@ deck/~$*
 # harness / editor integration (local only)
 .dsh-integration/
 .zed/
+backend/data/db.json

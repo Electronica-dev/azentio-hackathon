@@ -1,4 +1,4 @@
 @echo off
-REM Regula - one command, no install, no build step.
+REM Regula - starts the canonical backend (stdlib only, no install).
 cd /d "%~dp0"
-python app\serve.py %*
+python backend\serve.py %*

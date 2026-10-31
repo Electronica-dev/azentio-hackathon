@@ -37,6 +37,8 @@ export type SourceStatus = "new" | "in_review" | "analyzed" | "planned" | "imple
 export interface Relationship {
   status: RelationshipStatus
   prior_source_id?: string | null
+  /** Reference of the prior document (e.g. RBI/2022-23/111) when it is not a separate publication. */
+  prior_ref?: string | null
   confidence?: number
   rationale?: string
 }
