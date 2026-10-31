@@ -46,5 +46,23 @@
     "prior_doc": null,
     "summary": "24x7 SOC monitoring with 180-day log retention, annual third-party cyber assessments and six-hour incident reporting to SEBI.",
     "tags": ["cyber", "third party", "incident reporting"]
+  },
+  {
+    "id": "src-dl-2025",
+    "regulator": "RBI",
+    "ref": "RBI/2025-26/36",
+    "title": "Reserve Bank of India (Digital Lending) Directions, 2025",
+    "short_title": "Digital Lending Directions 2025",
+    "published": "2025-05-08",
+    "effective": "2025-05-08",
+    "status": "new",
+    "risk": "high",
+    "owner": "Rohan Iyer",
+    "doc": "rbi_digital_lending_2025.txt",
+    "prior_doc": "rbi_digital_lending_2022.txt",
+    "prior_source_id": "src-dl-2022",
+    "ai": true,
+    "summary": "Consolidated digital lending directions for RE-LSP arrangements, multi-lender disclosures, DLG cap at five per cent, data storage and reporting of digital lending apps. Repeals the 2022 Guidelines and the 2023 DLG circular.",
+    "tags": ["digital lending", "LSP", "DLA", "DLG", "KFS", "data"]
   }
 ]

@@ -4,12 +4,19 @@ from __future__ import annotations
 import time
 from datetime import date
 
-from . import audit
+from . import audit, enrich
 from .assess import build_impact
 from .extract import extract_obligations
 from .ingest import build_clauses
 from .match import Matcher
 from .planner import build_tasks
+
+CLASS_OF_TYPE = {
+    "added": "new_obligation",
+    "removed": "withdrawn",
+    "modified": "modified",
+    "unchanged": "no_material_change",
+}
 
 
 def run_source(state: dict, source: dict, docs: dict[str, str], prior_docs: dict[str, str], actor: str = "Regula Agent") -> dict:
@@ -25,8 +32,25 @@ def run_source(state: dict, source: dict, docs: dict[str, str], prior_docs: dict
     changed = sum(1 for c in clauses if c["change_type"] in ("modified", "added", "removed"))
     step("Ingest & align clauses", f"{len(clauses)} clauses · {changed} changed · redlines generated", s)
 
+    ai = {"enriched": False, "applied": 0, "total": len(clauses)}
+    if source.get("ai") and enrich.is_configured():
+        s = time.perf_counter()
+        ai = enrich.enrich_source(source, clauses, prior_docs.get(source.get("prior_doc") or ""))
+        detail = (f"{ai['applied']}/{ai['total']} clauses aligned & classified by model"
+                  if ai["enriched"] else f"model unavailable ({ai.get('error', 'error')}) — deterministic output kept")
+        step("AI align & classify", detail, s)
+
     s = time.perf_counter()
     obligations = extract_obligations(source, clauses)
+    clause_by_id = {c["id"]: c for c in clauses}
+    for obligation in obligations:
+        clause = clause_by_id.get(obligation["clause_id"]) or {}
+        obligation["applicability"] = clause.get("applicability", [])
+        obligation["applies_to"] = clause.get("applies_to", [])
+        obligation["references"] = clause.get("references", [])
+        obligation["significance"] = clause.get("significance", "")
+        obligation["change_class"] = clause.get("change_class") or CLASS_OF_TYPE.get(obligation["change_type"], "modified")
+        obligation["enrichment"] = clause.get("enrichment", "rule")
     step("Extract obligations", f"{len(obligations)} obligations · confidence {sum(o['confidence'] for o in obligations) / max(1, len(obligations)):.2f}", s)
 
     s = time.perf_counter()
