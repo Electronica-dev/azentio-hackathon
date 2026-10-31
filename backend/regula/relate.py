@@ -180,10 +180,15 @@ AUTHORITY_HINTS = (
     ("SAUDI CENTRAL BANK", "SAMA"),
     ("CENTRAL BANK OF THE UAE", "CBUAE"),
     ("CENTRAL BANK OF THE UNITED ARAB EMIRATES", "CBUAE"),
+    ("SOUTH AFRICAN RESERVE BANK", "SARB"),
     ("SAMA", "SAMA"),
+    ("SARB", "SARB"),
 )
 
-REGION_OF = {"RBI": "INDIA", "SEBI": "INDIA", "SAMA": "KSA", "CBUAE": "UAE", "CBN": "AFRICA"}
+REGION_OF = {
+    "RBI": "INDIA", "SEBI": "INDIA", "SAMA": "KSA",
+    "CBUAE": "UAE", "SARB": "SOUTH_AFRICA", "CBN": "AFRICA",
+}
 
 
 def guess_authority(text: str) -> str:

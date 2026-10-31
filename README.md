@@ -42,6 +42,7 @@ flowchart LR
         SEBI["SEBI"]
         SAMA["SAMA"]
         CBUAE["CBUAE"]
+        SARB["SARB"]
     end
 
     SRC --> MON["Monitor<br/>RSS · rulebook listing · manual upload"]

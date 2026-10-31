@@ -163,7 +163,7 @@ earlier `AFRICA` bucket was replaced by `SOUTH_AFRICA` when SARB was onboarded.
 | `id` | string | `evt-0007` |
 | `ts` | datetime | ISO with +05:30 |
 | `actor` | string | agent or person |
-| `action` | enum | `source.ingested`, `agent.run.completed`, `impact.approved`, `impact.rejected`, `task.status_changed` |
+| `action` | enum | `source.ingested`, `source.uploaded`, `agent.run.completed`, `impact.approved`, `impact.rejected`, `task.status_changed`, `relationship.linked`, `relationship.proposed`, `relationship.confirmed`, `relationship.backfilled` |
 | `entity` | string | source ref / impact id / task id |
 | `detail` | string | human-readable |
 | `prev_hash`, `hash` | string | SHA-256 chain |
@@ -193,6 +193,52 @@ The UI animates `run.steps`, then refetches `/api/state`.
 ## `GET /api/export/{sourceId}.md`
 
 `text/markdown` attachment: executive summary, obligation table, impact table, change plan, last audit events.
+
+## `POST /api/sources/upload`
+
+```json
+{ "filename": "kyc-amendment-2027.txt", "content_base64": "...", "authority": "RBI", "actor": "Compliance" }
+```
+
+`authority` is optional — when absent it is read from the letterhead. Response:
+
+```json
+{
+  "duplicate": false,
+  "quality": "text",
+  "source": { "id": "src-up-…", "title": "…", "ref": "RBI/2027-28/12", "authority": "RBI", "region": "INDIA" },
+  "relationship": {
+    "status": "linked | proposed | standalone",
+    "confidence": 0.78,
+    "prior_source_id": "src-kyc-2026",
+    "prior_title": "…",
+    "rationale": "Same instrument and the immediately preceding version.",
+    "alternatives": []
+  },
+  "run": { "stats": { "clauses": 3, "obligations": 2, "impacts": 9 } },
+  "backfilled": []
+}
+```
+
+The upload is persisted before the response: source, clauses, obligations, impacts, tasks, the
+relationship and an `uploads` ledger entry. `proposed` means the engine declined to guess — choose
+a candidate with `POST /api/sources/{id}/link`. `duplicate: true` means the content hash already
+exists and no diff was run.
+
+## `POST /api/sources/{id}/relate`
+
+`{ "apply": false }` re-runs relationship inference and returns the candidates, confidence and
+signals without changing anything. `{ "apply": true }` accepts a `linked` result and re-runs the
+diff.
+
+## `POST /api/sources/{id}/link`
+
+```json
+{ "prior_source_id": "src-kyc-2026", "actor": "Priya Menon" }
+```
+
+Confirms a predecessor from the grey band, sets `confidence: 1.0`, re-runs the diff and writes
+`relationship.confirmed` to the audit chain.
 
 ## Compatibility rules
 

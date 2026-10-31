@@ -43,8 +43,9 @@ TITLE_RE = re.compile(
 )
 # Letterhead lines that are not the document title.
 HEADER_RE = re.compile(
-    r"^(reserve bank|department of|central office|saudi central bank|central bank of|"
-    r"securities and exchange board|banking supervision|rulebook)", re.I
+    r"^(reserve bank|south african reserve bank|department of|central office|"
+    r"saudi central bank|central bank of|securities and exchange board|"
+    r"banking supervision|rulebook)", re.I
 )
 # A subtitle worth appending to the title.
 SUBTITLE_RE = re.compile(

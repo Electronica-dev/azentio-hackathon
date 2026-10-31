@@ -342,6 +342,7 @@ export function UploadCircular() {
                     <option value="SEBI">SEBI — India</option>
                     <option value="SAMA">SAMA — Saudi Arabia</option>
                     <option value="CBUAE">CBUAE — UAE</option>
+                    <option value="SARB">SARB — South Africa</option>
                   </select>
                 </label>
 
