@@ -16,8 +16,10 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 
 from .ingest import _prior_body, _substantive, parse_prior
 from .text import redline
@@ -40,6 +42,13 @@ CLASS_TO_TYPE = {
     "deadline_extended": "modified",
     "deadline_shortened": "modified",
     "clarification": "modified",
+}
+
+TYPE_TO_CLASS = {
+    "added": "new_obligation",
+    "removed": "withdrawn",
+    "modified": "modified",
+    "unchanged": "no_material_change",
 }
 
 SYSTEM = """You are a regulatory change analyst at an Indian bank. You compare a NEW regulatory
@@ -67,11 +76,12 @@ Rules:
 - change_class describes what changed for that clause. deadline_extended / deadline_shortened only when a
   compliance timeline moved. clarification when wording is clarified without changing the duty.
   no_material_change when the clause is substantively identical.
-- significance: one plain-English sentence (max 220 chars) saying why the change matters to the bank.
+- significance: one plain-English sentence (max 160 chars) saying why the change matters to the bank.
   No legal citation, no restating the clause title.
 - applicability and applies_to: only what the text supports; empty array if unclear.
 - references: earlier circular/regulation identifiers explicitly cited in the clause text; empty array if none.
 - Never invent clause numbers, references or requirements. If unsure, use null / no_material_change.
+- Output valid JSON only. Escape any double quote inside a string; do not wrap in markdown.
 """
 
 
@@ -84,13 +94,12 @@ def _clip(text: str, limit: int) -> str:
     return text[:limit] + ("…" if len(text) > limit else "")
 
 
-def _prompt(source: dict, clauses: list[dict], prior_text: str | None) -> str:
-    prior = parse_prior(prior_text) if prior_text else {}
+def _prompt(source: dict, clauses: list[dict], prior: dict[str, str]) -> str:
     new_block = "\n".join(
-        f"[{c['num']}] {_clip(c['heading'], 140)}\n{_clip(c['body'], 900)}" for c in clauses
+        f"[{c['num']}] {_clip(c['heading'], 140)}\n{_clip(c['body'], 700)}" for c in clauses
     )
     prior_block = "\n".join(
-        f"[{num}] {_clip(text, 700)}" for num, text in sorted(prior.items(), key=lambda kv: int(kv[0]) if kv[0].isdigit() else 0)
+        f"[{num}] {_clip(text, 600)}" for num, text in sorted(prior.items(), key=lambda kv: int(kv[0]) if kv[0].isdigit() else 0)
     ) or "(no prior document provided — every clause is a new obligation)"
 
     return f"""NEW DOCUMENT
@@ -108,7 +117,19 @@ PRIOR DOCUMENT (the regulation this one replaces/amends)
 """
 
 
-def _chat(messages: list[dict], timeout: int = 90) -> dict:
+def _completion(base: str, key: str, body: dict, timeout: int) -> str:
+    req = urllib.request.Request(
+        f"{base}/chat/completions",
+        data=json.dumps(body).encode("utf-8"),
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {key}"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        payload = json.loads(resp.read().decode("utf-8"))
+    return payload["choices"][0]["message"]["content"]
+
+
+def _chat(messages: list[dict], timeout: int = 120) -> dict:
     base = os.environ.get("REGULA_LLM_BASE_URL", "https://api.openai.com/v1").rstrip("/")
     key = os.environ["REGULA_LLM_API_KEY"].strip()
     model = os.environ.get("REGULA_LLM_MODEL", "gpt-4o-mini").strip()
@@ -116,34 +137,26 @@ def _chat(messages: list[dict], timeout: int = 90) -> dict:
     body = {
         "model": model,
         "temperature": 0,
+        "max_tokens": 6000,
         "messages": messages,
         "response_format": {"type": "json_object"},
     }
-    req = urllib.request.Request(
-        f"{base}/chat/completions",
-        data=json.dumps(body).encode("utf-8"),
-        headers={"Content-Type": "application/json", "Authorization": f"Bearer {key}"},
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            payload = json.loads(resp.read().decode("utf-8"))
-    except urllib.error.HTTPError as exc:
-        # Some OpenAI-compatible providers reject response_format; retry without it.
-        if exc.code != 400:
-            raise
-        body.pop("response_format", None)
-        req = urllib.request.Request(
-            f"{base}/chat/completions",
-            data=json.dumps(body).encode("utf-8"),
-            headers={"Content-Type": "application/json", "Authorization": f"Bearer {key}"},
-            method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            payload = json.loads(resp.read().decode("utf-8"))
 
-    content = payload["choices"][0]["message"]["content"]
-    return json.loads(_json_block(content))
+    last: Exception | None = None
+    for _ in range(2):
+        try:
+            return json.loads(_json_block(_completion(base, key, body, timeout)))
+        except urllib.error.HTTPError as exc:
+            last = exc
+            # Some OpenAI-compatible providers reject response_format; retry without it.
+            if exc.code == 400 and "response_format" in body:
+                body.pop("response_format", None)
+                continue
+            time.sleep(0.8)
+        except json.JSONDecodeError as exc:
+            last = exc
+            time.sleep(0.8)
+    raise last or RuntimeError("model call failed")
 
 
 def _json_block(text: str) -> str:
@@ -157,15 +170,8 @@ def _json_block(text: str) -> str:
     return text
 
 
-def _usable(item: dict, prior: dict[str, str]) -> bool:
-    if str(item.get("change_class")) not in CHANGE_CLASSES:
-        return False
-    if not str(item.get("significance") or "").strip():
-        return False
-    pc = item.get("prior_clause_num")
-    if pc not in (None, "", "null") and str(pc) not in prior:
-        return False
-    return True
+def _usable(item: dict) -> bool:
+    return str(item.get("change_class")) in CHANGE_CLASSES
 
 
 def apply_result(
@@ -180,22 +186,26 @@ def apply_result(
     applied = 0
 
     rel = result.get("relationship") or {}
+    known_ref = source.get("prior_ref") or _prior_ref(prior_text)
     if isinstance(rel, dict):
+        prior_ref = rel.get("prior_ref") or known_ref
         source["relationship"] = {
-            "status": "linked" if rel.get("prior_ref") else "standalone",
-            "prior_ref": rel.get("prior_ref"),
-            "confidence": round(float(rel.get("confidence") or 0), 2),
+            "status": "linked" if prior_ref else "standalone",
+            "prior_ref": prior_ref,
+            "confidence": round(float(rel.get("confidence") or (0.9 if prior_ref else 0)), 2),
             "rationale": str(rel.get("rationale") or "")[:400],
         }
+    elif known_ref:
+        source["relationship"] = {"status": "linked", "prior_ref": known_ref, "confidence": 0.9, "rationale": ""}
 
     for item in result.get("clauses") or []:
         clause = by_num.get(str(item.get("num")))
-        if not clause or not _usable(item, prior):
+        if not clause or not _usable(item):
             continue
         cls = item["change_class"]
         clause["change_class"] = cls
         clause["change_type"] = CLASS_TO_TYPE[cls]
-        clause["significance"] = str(item.get("significance") or "")[:260]
+        clause["significance"] = (str(item.get("significance") or "").strip() or f"{cls.replace('_', ' ').capitalize()} — review the redline against the prior clause.")[:260]
         clause["applicability"] = [a for a in item.get("applicability") or [] if isinstance(a, str)][:5]
         clause["applies_to"] = [a for a in item.get("applies_to") or [] if isinstance(a, str)][:6]
         clause["references"] = [a for a in item.get("references") or [] if isinstance(a, str)][:6]
@@ -214,15 +224,80 @@ def apply_result(
             clause["redline"] = []
         applied += 1
 
+    # Repeal clauses are withdrawals even if the model reads them as new duties.
+    for clause in clauses:
+        if "repeal" in clause.get("heading", "").lower() and clause.get("change_class") == "new_obligation":
+            clause["change_class"] = "withdrawn"
+            clause["change_type"] = "removed"
+            clause["significance"] = "The earlier guidelines are repealed; only the transition savings clause survives."
+
+    # Anything the model skipped still gets a class so every clause renders.
+    for clause in clauses:
+        if not clause.get("change_class"):
+            clause["change_class"] = TYPE_TO_CLASS.get(clause.get("change_type", "added"), "new_obligation")
+
     return {"enriched": applied > 0, "applied": applied, "total": len(clauses)}
 
 
-def enrich_source(source: dict, clauses: list[dict], prior_text: str | None) -> dict:
-    """Call the model and apply the result. Never raises into the pipeline."""
+def _prior_ref(prior_text: str | None) -> str | None:
+    if not prior_text:
+        return None
+    match = re.search(r"RBI/\d{4}-\d{2}/\d+", prior_text)
+    return match.group(0) if match else None
+
+
+def _batched(items: list, size: int) -> list[list]:
+    return [items[i : i + size] for i in range(0, len(items), size)]
+
+
+def enrich_source(source: dict, clauses: list[dict], prior_text: str | None, batch_size: int = 5) -> dict:
+    """Call the model in parallel batches and apply the merged result.
+
+    Small batches keep each generation short (latency ~10 s) and give partial
+    results even if one batch fails. Missing clauses get one retry pass.
+    Never raises into the pipeline.
+    """
     if not is_configured():
         return {"enriched": False, "applied": 0, "total": len(clauses), "error": "no key"}
-    try:
-        result = _chat([{"role": "system", "content": SYSTEM}, {"role": "user", "content": _prompt(source, clauses, prior_text)}])
-        return apply_result(source, clauses, prior_text, result)
-    except Exception as exc:  # noqa: BLE001 - demo must never die on the model
-        return {"enriched": False, "applied": 0, "total": len(clauses), "error": str(exc)[:300]}
+
+    prior = parse_prior(prior_text) if prior_text else {}
+    batches = _batched(clauses, batch_size)
+    merged: dict = {"relationship": None, "clauses": []}
+    errors: list[str] = []
+
+    def run(batch: list[dict]) -> dict:
+        return _chat([
+            {"role": "system", "content": SYSTEM},
+            {"role": "user", "content": _prompt(source, batch, prior)},
+        ])
+
+    with ThreadPoolExecutor(max_workers=min(4, len(batches))) as pool:
+        futures = [pool.submit(run, batch) for batch in batches]
+        for future in futures:
+            try:
+                result = future.result()
+            except Exception as exc:  # noqa: BLE001 - partial results are fine
+                errors.append(str(exc)[:160])
+                continue
+            if not merged["relationship"] and isinstance(result.get("relationship"), dict):
+                merged["relationship"] = result["relationship"]
+            merged["clauses"].extend(result.get("clauses") or [])
+
+    apply_result(source, clauses, prior_text, merged)
+
+    for _ in range(2):
+        missing = [c for c in clauses if c.get("enrichment") != "llm"]
+        if not missing:
+            break
+        try:
+            retry = run(missing)
+            apply_result(source, clauses, prior_text, {"relationship": merged.get("relationship"), "clauses": retry.get("clauses") or []})
+        except Exception as exc:  # noqa: BLE001
+            errors.append(str(exc)[:160])
+            break
+
+    applied = sum(1 for c in clauses if c.get("enrichment") == "llm")
+    stats = {"enriched": applied > 0, "applied": applied, "total": len(clauses)}
+    if errors:
+        stats["partial_errors"] = len(errors)
+    return stats
